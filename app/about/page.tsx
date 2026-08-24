@@ -1,15 +1,10 @@
-'use client';
-
 import React from 'react';
 import {
   ShieldCheck,
-  BookOpen,
   GraduationCap,
-  Cpu,
   Lock,
   Sparkles,
-  Layers,
-  ArrowRight
+  Layers
 } from 'lucide-react';
 
 export default function AboutPage() {

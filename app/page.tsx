@@ -1,8 +1,6 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, Code2, Sparkles, Shield, Trophy, CheckCircle2, Play, Users, BookOpen } from 'lucide-react';
+import { ArrowRight, BookOpen, Play } from 'lucide-react';
 import { SYLLABUS_EXPERIMENTS } from '@/lib/syllabus-data';
 
 export default function HomePage() {
@@ -100,7 +98,7 @@ export default function HomePage() {
               {/* Col 3: AI Explanation */}
               <div className="p-4 bg-surface font-sans text-xs">
                 <div className="text-muted text-[10px] uppercase font-bold tracking-wider mb-2 font-sans flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-accent-indigo" />
+                  <span className="text-xs">✨</span>
                   <span>3. AI Explanation</span>
                 </div>
                 <p className="text-secondary leading-relaxed">
