@@ -1,22 +1,9 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { LoadingScreen } from "@/components/loading-screen";
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-sans",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-mono",
-});
 
 export const metadata: Metadata = {
   title: "Data Structures Virtual Lab (C) | Interactive AST Visualizer",
@@ -29,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen flex flex-col bg-background text-primary font-sans antialiased">
         <AuthProvider>
           <LoadingScreen />
