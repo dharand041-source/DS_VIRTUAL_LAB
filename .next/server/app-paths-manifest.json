@@ -1,0 +1,10 @@
+{
+  "/syllabus/page": "app/syllabus/page.js",
+  "/page": "app/page.js",
+  "/experiments/[id]/page": "app/experiments/[id]/page.js",
+  "/lab/[id]/page": "app/lab/[id]/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/leaderboard/page": "app/leaderboard/page.js",
+  "/faculty/page": "app/faculty/page.js",
+  "/about/page": "app/about/page.js"
+}
