@@ -70,6 +70,21 @@ export interface AssessmentQuestion {
   points: number;
 }
 
+export interface LinePedagogicalExplanation {
+  rawLine: string;
+  lineNumber: number;
+  category: 'preprocessor' | 'struct_type' | 'pointer_op' | 'dynamic_memory' | 'stack_op' | 'loop_control' | 'conditional' | 'function' | 'io' | 'assignment' | 'general';
+  purpose: string;
+  whatItDoes: string;
+  whyUsed: string;
+  whyNeeded: string;
+  whatIfRemoved: string;
+  internalMemoryEffect: string;
+  beginnerFriendly: string;
+  keySymbols?: { symbol: string; meaning: string }[];
+  potentialMistakes?: string[];
+}
+
 export interface Experiment {
   id: string;
   expNumber: number;
@@ -95,7 +110,7 @@ export interface Experiment {
     beginnerFriendly: string;
     whyNeeded: string;
     whatIfRemoved: string;
-    astConcept: string;
+    astConcept?: string;
   }>;
   testCases: TestCase[];
   timeComplexity: {
@@ -142,6 +157,7 @@ export interface ASTVariable {
 
 export interface ASTProgramState {
   activeLineNumber: number;
+  activeLineText: string;
   variables: ASTVariable[];
   nodes: ASTVisualNode[];
   stackItems: ASTStackItem[];
@@ -158,12 +174,7 @@ export interface ASTProgramState {
   };
   callStack: string[];
   consoleOutput: string[];
-  lineExplanation?: {
-    purpose: string;
-    beginnerFriendly: string;
-    whyNeeded: string;
-    whatIfRemoved: string;
-  };
+  lineExplanation?: LinePedagogicalExplanation;
   error?: string;
 }
 

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import type { OnMount } from '@monaco-editor/react';
-import { Play, RotateCcw, FileCode, Loader2 } from 'lucide-react';
+import { Play, RotateCcw, FileCode, Loader2, Sparkles } from 'lucide-react';
 
 // Dynamically import Monaco Editor without SSR to prevent vendor-chunk load errors
 const Editor = dynamic(() => import('@monaco-editor/react'), {
@@ -40,13 +40,23 @@ export function CodeEditorPanel({
   solutionCode
 }: CodeEditorPanelProps) {
   const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
 
     // Track line cursor changes for live AST visual sync
     editor.onDidChangeCursorPosition((e) => {
       onCursorLineChange(e.position.lineNumber);
+    });
+
+    // Also trigger update on live content typing
+    editor.onDidChangeModelContent(() => {
+      const pos = editor.getPosition();
+      if (pos) {
+        onCursorLineChange(pos.lineNumber);
+      }
     });
 
     // Configure clean typography & theme
@@ -81,8 +91,9 @@ export function CodeEditorPanel({
         <div className="flex items-center gap-2">
           <FileCode className="w-4 h-4 text-primary" />
           <span className="text-xs font-bold text-primary font-mono">program.c</span>
-          <span className="text-[11px] font-mono text-muted bg-surface px-1.5 py-0.5 rounded border border-border">
-            Line {activeLine}
+          <span className="text-[11px] font-mono text-primary font-semibold bg-surface px-2 py-0.5 rounded border border-border flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-accent-indigo animate-pulse" />
+            <span>AI Tracking Line {activeLine}</span>
           </span>
         </div>
 
@@ -132,7 +143,13 @@ export function CodeEditorPanel({
           height="100%"
           defaultLanguage="c"
           value={code}
-          onChange={(val) => onChange(val || '')}
+          onChange={(val) => {
+            onChange(val || '');
+            if (editorRef.current) {
+              const pos = editorRef.current.getPosition();
+              if (pos) onCursorLineChange(pos.lineNumber);
+            }
+          }}
           onMount={handleEditorDidMount}
           options={{
             fontSize: 13,
