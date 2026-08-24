@@ -1,4 +1,4 @@
-// File: C:\Users\VPK\Documents\DS_VIRTUAL_LAB\DS_VIRTUAL_LAB\app\lab\[id]\page.tsx
+// File: C:\Users\Guruvammal\OneDrive\Documents\DS_VIRTUAL_LAB\app\lab\[id]\page.tsx
 import * as entry from '../../../../../app/lab/[id]/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
