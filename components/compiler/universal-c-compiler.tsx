@@ -214,13 +214,13 @@ export function UniversalCCompiler() {
           <button
             onClick={handleRunCode}
             disabled={isRunning}
-            className="px-4 py-1.5 rounded-lg border border-border bg-white hover:bg-surface text-primary text-xs font-bold flex items-center gap-1.5 shadow-subtle transition disabled:opacity-50"
+            className="px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-red transition disabled:opacity-50 border border-red-600"
             title="Run C Program"
           >
             {isRunning ? (
-              <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Play className="w-3.5 h-3.5 fill-current text-primary" />
+              <Play className="w-3.5 h-3.5 fill-current text-white" />
             )}
             <span>{isRunning ? 'Compiling...' : 'Run Code'}</span>
           </button>
@@ -230,18 +230,18 @@ export function UniversalCCompiler() {
             onClick={() => setIsPlaying(!isPlaying)}
             className={`px-3 py-1.5 rounded-lg border border-border text-xs font-bold flex items-center gap-1.5 transition shadow-subtle ${
               isPlaying
-                ? 'bg-surface text-primary font-semibold'
-                : 'bg-white text-primary hover:bg-surface'
+                ? 'bg-red-50 text-red-600 border-red-200 font-bold'
+                : 'bg-white text-black hover:bg-surface'
             }`}
           >
-            {isPlaying ? <Pause className="w-3.5 h-3.5 text-primary" /> : <Play className="w-3.5 h-3.5 fill-current text-primary" />}
+            {isPlaying ? <Pause className="w-3.5 h-3.5 text-red-600" /> : <Play className="w-3.5 h-3.5 fill-current text-black" />}
             <span>{isPlaying ? 'Pause' : 'Auto Play Line-by-Line'}</span>
           </button>
 
           <button
             onClick={handleStepPrev}
             disabled={activeLine <= 1}
-            className="p-1.5 rounded-lg border border-border bg-white hover:bg-surface text-primary disabled:opacity-40 transition shadow-subtle"
+            className="p-1.5 rounded-lg border border-border bg-white hover:bg-surface text-black disabled:opacity-40 transition shadow-subtle"
             title="Step Previous Line"
           >
             <SkipBack className="w-4 h-4" />
@@ -250,7 +250,7 @@ export function UniversalCCompiler() {
           <button
             onClick={handleStepNext}
             disabled={activeLine >= totalLines}
-            className="px-2.5 py-1.5 rounded-lg border border-border bg-white hover:bg-surface text-primary text-xs font-semibold flex items-center gap-1 disabled:opacity-40 transition shadow-subtle"
+            className="px-2.5 py-1.5 rounded-lg border border-border bg-white hover:bg-surface text-black text-xs font-semibold flex items-center gap-1 disabled:opacity-40 transition shadow-subtle"
             title="Step Next Line"
           >
             <span>Next Line</span>
@@ -259,7 +259,7 @@ export function UniversalCCompiler() {
 
           <button
             onClick={handleReset}
-            className="p-1.5 rounded-lg border border-border bg-white hover:bg-surface text-muted hover:text-primary transition shadow-subtle"
+            className="p-1.5 rounded-lg border border-border bg-white hover:bg-surface text-muted hover:text-black transition shadow-subtle"
             title="Reset to Line 1"
           >
             <RotateCcw className="w-4 h-4" />
@@ -267,7 +267,7 @@ export function UniversalCCompiler() {
 
           <div className="hidden sm:flex items-center gap-1 ml-2 font-mono text-xs text-muted border-l border-border pl-3">
             <span>Line:</span>
-            <span className="font-bold text-primary px-1.5 py-0.5 rounded bg-surface border border-border text-[11px]">
+            <span className="font-bold text-red-600 px-1.5 py-0.5 rounded bg-red-50 border border-red-200 text-[11px]">
               {activeLine} / {totalLines}
             </span>
           </div>
@@ -287,7 +287,7 @@ export function UniversalCCompiler() {
             <button
               onClick={() => setPlaySpeed(1500)}
               className={`px-2 py-0.5 rounded text-[10px] transition ${
-                playSpeed === 1500 ? 'bg-primary text-white font-bold' : 'text-secondary hover:text-primary'
+                playSpeed === 1500 ? 'bg-black text-white font-bold' : 'text-secondary hover:text-black'
               }`}
             >
               0.5x
@@ -295,21 +295,21 @@ export function UniversalCCompiler() {
             <button
               onClick={() => setPlaySpeed(1000)}
               className={`px-2 py-0.5 rounded text-[10px] transition ${
-                playSpeed === 1000 ? 'bg-primary text-white font-bold' : 'text-secondary hover:text-primary'
+                playSpeed === 1000 ? 'bg-black text-white font-bold' : 'text-secondary hover:text-black'
               }`}
             >
               1.0x
             </button>
             <button
-              onClick={() => setPlaySpeed(500)}
+              onClick={() => setPlaySpeed(400)}
               className={`px-2 py-0.5 rounded text-[10px] transition ${
-                playSpeed === 500 ? 'bg-primary text-white font-bold' : 'text-secondary hover:text-primary'
+                playSpeed === 400 ? 'bg-black text-white font-bold' : 'text-secondary hover:text-black'
               }`}
             >
               2.0x
             </button>
           </div>
-        </div>
+        </div>v>
       </div>
 
       {/* Main Split-Screen Workspace */}

@@ -35,8 +35,8 @@ export default function LeaderboardPage() {
         <div className="bg-white p-6 rounded-xl border border-border shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Trophy className="w-5 h-5 text-amber-500" />
-              <h1 className="text-2xl font-bold text-primary tracking-tight">
+              <Trophy className="w-5 h-5 text-red-600" />
+              <h1 className="text-2xl font-black text-black tracking-tight">
                 Weekly Learning Leaderboard
               </h1>
             </div>
@@ -48,8 +48,8 @@ export default function LeaderboardPage() {
           {/* Weekly Countdown Timer */}
           <div className="bg-surface p-3 rounded-lg border border-border text-left sm:text-right shrink-0">
             <span className="text-[10px] font-mono text-muted uppercase block">Weekly Cycle Ends In</span>
-            <span className="text-sm font-bold font-mono text-primary flex items-center gap-1.5 mt-0.5">
-              <Clock className="w-4 h-4 text-accent-blue" />
+            <span className="text-sm font-bold font-mono text-black flex items-center gap-1.5 mt-0.5">
+              <Clock className="w-4 h-4 text-red-600" />
               4 Days 11 Hours
             </span>
           </div>
@@ -62,8 +62,8 @@ export default function LeaderboardPage() {
               onClick={() => setBoardType('college')}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                 boardType === 'college'
-                  ? 'bg-primary text-white shadow-subtle'
-                  : 'text-secondary hover:text-primary hover:bg-surface'
+                  ? 'bg-red-600 text-white shadow-red'
+                  : 'text-secondary hover:text-black hover:bg-surface'
               }`}
             >
               <Medal className="w-3.5 h-3.5" />
@@ -74,8 +74,8 @@ export default function LeaderboardPage() {
               onClick={() => setBoardType('global')}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                 boardType === 'global'
-                  ? 'bg-primary text-white shadow-subtle'
-                  : 'text-secondary hover:text-primary hover:bg-surface'
+                  ? 'bg-black text-white shadow-subtle'
+                  : 'text-secondary hover:text-black hover:bg-surface'
               }`}
             >
               <Trophy className="w-3.5 h-3.5" />
@@ -109,7 +109,7 @@ export default function LeaderboardPage() {
                 <div
                   key={entry.userId + entry.rank}
                   className={`px-5 py-3.5 flex items-center justify-between transition ${
-                    isCurrentUser ? 'bg-amber-50/40 font-semibold' : 'hover:bg-surface-subtle'
+                    isCurrentUser ? 'bg-red-50/50 border-l-4 border-l-red-600 font-semibold' : 'hover:bg-surface-subtle'
                   }`}
                 >
                   {/* Left: Rank & Student Profile */}
@@ -117,52 +117,45 @@ export default function LeaderboardPage() {
                     <div
                       className={`w-7 h-7 rounded-full flex items-center justify-center font-mono font-bold text-xs ${
                         entry.rank === 1
-                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                          ? 'bg-red-600 text-white shadow-xs'
                           : entry.rank === 2
-                          ? 'bg-zinc-200 text-zinc-800 border border-zinc-300'
+                          ? 'bg-zinc-800 text-white'
                           : entry.rank === 3
-                          ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                          : 'bg-surface text-muted border border-border'
+                          ? 'bg-zinc-600 text-white'
+                          : 'bg-surface text-secondary border border-border'
                       }`}
                     >
                       {entry.rank}
                     </div>
 
-                    <div className="w-8 h-8 rounded-full bg-surface-subtle border border-border flex items-center justify-center font-mono font-bold text-xs text-primary">
-                      {entry.avatar}
-                    </div>
-
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-primary">{cleanName}</span>
+                        <span className="text-xs font-bold text-black">{cleanName}</span>
                         {isCurrentUser && (
-                          <span className="text-[9px] font-mono bg-primary text-white px-1.5 py-0.5 rounded font-bold">
-                            YOU
+                          <span className="text-[10px] font-bold font-mono px-1.5 py-0.2 rounded bg-red-100 text-red-700 border border-red-300">
+                            (You)
+                          </span>
+                        )}
+                        {entry.rank === 1 && (
+                          <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-red-100 text-red-700">
+                            👑 Rank 1
                           </span>
                         )}
                       </div>
-                      <span className="text-[11px] text-muted font-medium">
-                        {entry.collegeName.replace('Our College ', '')}
+                      <span className="text-[11px] text-secondary font-mono">
+                        {entry.college} &bull; {entry.department}
                       </span>
                     </div>
                   </div>
 
-                  {/* Right: XP Score & Badges Count */}
-                  <div className="flex items-center gap-5">
-                    <div className="text-right">
-                      <span className="text-sm font-bold font-mono text-primary flex items-center justify-end gap-1">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                        {entry.xp} XP
-                      </span>
-                      <span className="text-[10px] text-muted font-mono">
-                        +{entry.weeklyXp} this week
-                      </span>
+                  {/* Right: Score & Badges */}
+                  <div className="text-right">
+                    <div className="text-xs font-mono font-bold text-red-600">
+                      {entry.xp} XP
                     </div>
-
-                    <div className="hidden sm:flex items-center gap-1.5 text-xs text-secondary font-mono bg-surface px-2.5 py-1 rounded-lg border border-border">
-                      <Award className="w-3.5 h-3.5 text-muted" />
-                      <span>{entry.badgesCount} Badges</span>
-                    </div>
+                    <span className="text-[10px] font-mono text-muted">
+                      {entry.completedCount} Exps Done
+                    </span>
                   </div>
                 </div>
               );
@@ -170,12 +163,15 @@ export default function LeaderboardPage() {
           </div>
         </div>
 
-        {/* Academic Notice */}
-        <div className="p-4 rounded-xl bg-surface border border-border flex items-start gap-2.5 text-xs text-secondary shadow-subtle">
-          <Info className="w-4 h-4 text-muted shrink-0 mt-0.5" />
-          <p className="leading-relaxed">
-            <strong className="text-primary font-semibold">Academic Notice:</strong> Gamification XP is a motivational tool for practice consistency and is separate from official continuous internal assessment (CIA) records.
-          </p>
+        {/* Gamification Rules Box */}
+        <div className="p-4 bg-white rounded-xl border border-border flex items-start gap-3 shadow-subtle">
+          <Info className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h4 className="text-xs font-bold text-black">Fair Play & Autonomous Scoring Criteria</h4>
+            <p className="text-[11px] text-secondary leading-relaxed">
+              XP points are automatically awarded on successful execution of C compiler test cases (+50 XP), Assessment Quizzes (+30 XP), 10s Viva challenges (+100 XP), and Educational Feedback (+10 XP). Leaderboards reset every Sunday at midnight.
+            </p>
+          </div>
         </div>
       </div>
     </div>

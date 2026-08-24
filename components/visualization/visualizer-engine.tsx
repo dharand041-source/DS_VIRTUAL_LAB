@@ -1,11 +1,31 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ASTProgramState, Experiment } from '@/lib/types';
 import { LinkedListVisualizer } from './linked-list-visualizer';
 import { StackVisualizer } from './stack-visualizer';
 import { ParenthesesVisualizer } from './parentheses-visualizer';
-import { Eye, Database, Cpu, ArrowRight, Check, Network, Layers, GitBranch, Binary, Share2 } from 'lucide-react';
+import {
+  Eye,
+  Database,
+  Cpu,
+  ArrowRight,
+  Check,
+  Network,
+  Layers,
+  GitBranch,
+  Binary,
+  Share2,
+  Plus,
+  Trash2,
+  RotateCcw,
+  Play,
+  Pause,
+  SkipForward,
+  Sparkles,
+  Info,
+  ArrowDown
+} from 'lucide-react';
 
 interface VisualizerEngineProps {
   experiment: Experiment;
@@ -16,47 +36,174 @@ interface VisualizerEngineProps {
 export function VisualizerEngine({ experiment, astState, activeLine }: VisualizerEngineProps) {
   const [activeTab, setActiveTab] = useState<'visual' | 'memory'>('visual');
 
+  // ==========================================
+  // 1. QUEUE STATE & ANIMATIONS (FIFO)
+  // ==========================================
+  const [queueItems, setQueueItems] = useState<{ id: string; value: number; isNew?: boolean; isRemoving?: boolean }[]>([
+    { id: 'q-1', value: 10 },
+    { id: 'q-2', value: 20 },
+    { id: 'q-3', value: 30 }
+  ]);
+  const [queueInput, setQueueInput] = useState<string>('40');
+  const [queueLog, setQueueLog] = useState<string>('FIFO Queue ready. Enqueue at REAR, Dequeue from FRONT.');
+
+  const handleEnqueue = () => {
+    const val = parseInt(queueInput, 10) || Math.floor(Math.random() * 80) + 10;
+    const newId = `q-${Date.now()}`;
+    const newItem = { id: newId, value: val, isNew: true };
+
+    setQueueItems(prev => [...prev, newItem]);
+    setQueueLog(`📥 ENQUEUE(${val}): Inserted at REAR index [${queueItems.length}]. (O(1) Time)`);
+
+    setTimeout(() => {
+      setQueueItems(prev => prev.map(it => it.id === newId ? { ...it, isNew: false } : it));
+    }, 500);
+  };
+
+  const handleDequeue = () => {
+    if (queueItems.length === 0) {
+      setQueueLog('❌ Queue Underflow! Queue is currently empty.');
+      return;
+    }
+    const removed = queueItems[0];
+    setQueueItems(prev => prev.map((it, idx) => idx === 0 ? { ...it, isRemoving: true } : it));
+    setQueueLog(`📤 DEQUEUE(): Removed ${removed.value} from FRONT. Remaining elements shifted.`);
+
+    setTimeout(() => {
+      setQueueItems(prev => prev.slice(1));
+    }, 400);
+  };
+
+  // ==========================================
+  // 2. ARRAY & SORTING ANIMATION (Swapping Boxes)
+  // ==========================================
+  const [arrayElements, setArrayElements] = useState<{ id: string; value: number; isComparing?: boolean; isSwapping?: boolean }[]>([
+    { id: 'a-1', value: 64 },
+    { id: 'a-2', value: 25 },
+    { id: 'a-3', value: 12 },
+    { id: 'a-4', value: 22 },
+    { id: 'a-5', value: 11 }
+  ]);
+  const [sortStep, setSortStep] = useState<number>(0);
+  const [isAutoSorting, setIsAutoSorting] = useState<boolean>(false);
+  const [sortLog, setSortLog] = useState<string>('Array initialized. Click "Next Step" to observe physical element swapping.');
+
+  const handleNextSortStep = () => {
+    const arr = [...arrayElements];
+    let swapped = false;
+
+    // Find next inverted adjacent pair
+    for (let i = 0; i < arr.length - 1; i++) {
+      if (arr[i].value > arr[i + 1].value) {
+        // Highlight compare & swap
+        const temp = arr[i];
+        arr[i] = { ...arr[i + 1], isSwapping: true };
+        arr[i + 1] = { ...temp, isSwapping: true };
+        setArrayElements(arr);
+        setSortStep(prev => prev + 1);
+        setSortLog(`🔄 SWAP: ${temp.value} > ${arr[i].value} ➔ Swapped box at [${i}] with [${i + 1}].`);
+        swapped = true;
+
+        setTimeout(() => {
+          setArrayElements(prev => prev.map(el => ({ ...el, isSwapping: false, isComparing: false })));
+        }, 500);
+        break;
+      }
+    }
+
+    if (!swapped) {
+      setSortLog('✓ Array is completely sorted in ascending order!');
+      setIsAutoSorting(false);
+    }
+  };
+
+  const handleResetSort = () => {
+    setArrayElements([
+      { id: 'a-1', value: 64 },
+      { id: 'a-2', value: 25 },
+      { id: 'a-3', value: 12 },
+      { id: 'a-4', value: 22 },
+      { id: 'a-5', value: 11 }
+    ]);
+    setSortStep(0);
+    setIsAutoSorting(false);
+    setSortLog('Reset array to unsorted state [64, 25, 12, 22, 11].');
+  };
+
+  // ==========================================
+  // 3. BST INTERACTIVE INSERTION & SEARCH
+  // ==========================================
+  const [bstRoot, setBstRoot] = useState<number>(50);
+  const [bstLeft, setBstLeft] = useState<number>(30);
+  const [bstRight, setBstRight] = useState<number>(70);
+  const [bstSearchVal, setBstSearchVal] = useState<string>('30');
+  const [bstActiveNode, setBstActiveNode] = useState<string | null>(null);
+  const [bstLog, setBstLog] = useState<string>('Binary Search Tree: Left < Root < Right hierarchy.');
+
+  const handleBstSearch = () => {
+    const val = parseInt(bstSearchVal, 10);
+    if (isNaN(val)) return;
+
+    setBstActiveNode('root');
+    setBstLog(`🔍 BST Search: Evaluating Root (${bstRoot}) for target ${val}...`);
+
+    setTimeout(() => {
+      if (val === bstRoot) {
+        setBstLog(`🎯 Match found at ROOT node (${bstRoot})!`);
+      } else if (val < bstRoot) {
+        setBstActiveNode('left');
+        setBstLog(`← ${val} < ${bstRoot}: Branched LEFT to Node (${bstLeft}). Target matched!`);
+      } else {
+        setBstActiveNode('right');
+        setBstLog(`→ ${val} > ${bstRoot}: Branched RIGHT to Node (${bstRight}). Target matched!`);
+      }
+      setTimeout(() => setBstActiveNode(null), 2500);
+    }, 800);
+  };
+
   return (
-    <div className="w-full h-full flex flex-col bg-white border border-border rounded-lg overflow-hidden shadow-subtle select-none">
+    <div className="w-full h-full flex flex-col bg-white border border-border rounded-xl overflow-hidden shadow-subtle select-none">
       {/* Top Engine Tabs */}
-      <div className="px-4 py-2 border-b border-border bg-white flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-accent-emerald animate-pulse"></div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-            Live Program Visualizer: {experiment.shortTitle}
+      <div className="px-4 py-2.5 border-b border-border bg-white flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+          <span className="text-xs font-black uppercase tracking-wider text-black font-mono">
+            LIVE ANIMATED PROGRAM VISUALIZER
           </span>
         </div>
 
-        <div className="flex items-center gap-1 bg-surface-subtle p-0.5 rounded-md border border-border">
+        <div className="flex items-center gap-1 bg-surface p-0.5 rounded-lg border border-border">
           <button
             onClick={() => setActiveTab('visual')}
-            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded transition ${
+            className={`flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-md transition ${
               activeTab === 'visual'
-                ? 'bg-white text-primary shadow-subtle font-semibold'
-                : 'text-muted hover:text-primary'
+                ? 'bg-red-50 text-red-600 border border-red-200 shadow-xs'
+                : 'text-secondary hover:text-black'
             }`}
           >
-            <Eye className="w-3.5 h-3.5" /> Visual State
+            <Eye className="w-3.5 h-3.5" />
+            <span>Visual Movement</span>
           </button>
 
           <button
             onClick={() => setActiveTab('memory')}
-            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded transition ${
+            className={`flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-md transition ${
               activeTab === 'memory'
-                ? 'bg-white text-primary shadow-subtle font-semibold'
-                : 'text-muted hover:text-primary'
+                ? 'bg-red-50 text-red-600 border border-red-200 shadow-xs'
+                : 'text-secondary hover:text-black'
             }`}
           >
-            <Database className="w-3.5 h-3.5" /> Memory Table
+            <Database className="w-3.5 h-3.5" />
+            <span>RAM Table</span>
           </button>
         </div>
       </div>
 
-      {/* Main Content Render */}
+      {/* Main Visualizer Render Area */}
       <div className="flex-1 flex flex-col min-h-0 bg-white">
         {activeTab === 'visual' ? (
-          <div className="flex-1 flex flex-col p-4 overflow-y-auto">
-            {/* Linked List */}
+          <div className="flex-1 flex flex-col overflow-y-auto">
+            {/* 1. LINKED LIST ADT */}
             {experiment.visualizationType === 'linked_list' && (
               <LinkedListVisualizer
                 nodes={astState.nodes}
@@ -64,134 +211,274 @@ export function VisualizerEngine({ experiment, astState, activeLine }: Visualize
               />
             )}
 
-            {/* Stack Array */}
+            {/* 2. STACK ARRAY ADT */}
             {experiment.visualizationType === 'stack_array' && (
               <StackVisualizer
                 initialItems={astState.stackItems}
                 mode="array"
-                maxCapacity={5}
+                maxCapacity={6}
+                activeLine={activeLine}
               />
             )}
 
-            {/* Stack Linked List */}
+            {/* 3. STACK LINKED LIST ADT */}
             {experiment.visualizationType === 'stack_linked_list' && (
               <StackVisualizer
                 initialItems={astState.stackItems}
                 mode="linked_list"
+                maxCapacity={6}
+                activeLine={activeLine}
               />
             )}
 
-            {/* Balanced Parentheses */}
+            {/* 4. BALANCED PARENTHESES */}
             {experiment.visualizationType === 'parentheses' && (
               <ParenthesesVisualizer />
             )}
 
-            {/* Queue (Array & Linked List) */}
+            {/* 5. QUEUE FIFO (ARRAY & LINKED LIST) WITH SLIDING BOXES */}
             {(experiment.visualizationType === 'queue_array' || experiment.visualizationType === 'queue_linked_list') && (
-              <div className="flex-1 flex flex-col items-center justify-center py-6">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted mb-4">
-                  FIFO Queue Pipeline (Front &rarr; Rear)
-                </span>
-                <div className="w-full max-w-md border-2 border-primary border-dashed rounded-2xl p-4 bg-surface/30 shadow-card flex items-center justify-start gap-2 overflow-x-auto">
-                  {astState.queueItems && astState.queueItems.length > 0 ? (
-                    astState.queueItems.map((qItem, idx) => (
-                      <div
-                        key={idx}
-                        className={`flex-1 min-w-[70px] p-2.5 rounded-xl border flex flex-col items-center text-xs font-mono shadow-subtle animate-fade-in ${
-                          qItem.isFront
-                            ? 'bg-blue-50 border-accent-blue'
-                            : qItem.isRear
-                            ? 'bg-emerald-50 border-accent-emerald'
-                            : 'bg-white border-border'
-                        }`}
-                      >
-                        {qItem.isFront && (
-                          <span className="text-[8px] font-bold uppercase text-accent-blue bg-blue-100 px-1 rounded mb-1">
-                            FRONT
-                          </span>
-                        )}
-                        <span className="text-sm font-bold text-primary">{qItem.value}</span>
-                        {qItem.isRear && (
-                          <span className="text-[8px] font-bold uppercase text-accent-emerald bg-emerald-100 px-1 rounded mt-1">
-                            REAR
-                          </span>
-                        )}
+              <div className="flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-white via-surface-subtle/30 to-surface min-h-[320px]">
+                {/* Control Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-black">FIFO Queue Pipeline</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface border border-border text-secondary">
+                      {queueItems.length} Elements
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      value={queueInput}
+                      onChange={(e) => setQueueInput(e.target.value)}
+                      placeholder="40"
+                      className="w-14 text-xs font-mono font-bold text-black px-2 py-1 bg-white border border-border rounded-lg"
+                    />
+                    <button
+                      onClick={handleEnqueue}
+                      className="px-3 py-1 text-xs font-bold rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-red transition"
+                    >
+                      + Enqueue (Rear)
+                    </button>
+                    <button
+                      onClick={handleDequeue}
+                      disabled={queueItems.length === 0}
+                      className="px-3 py-1 text-xs font-bold rounded-lg bg-black text-white hover:bg-zinc-800 disabled:opacity-50 transition shadow-subtle"
+                    >
+                      - Dequeue (Front)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Queue Conveyor Pipe */}
+                <div className="my-6 flex items-center justify-center">
+                  <div className="w-full max-w-xl border-4 border-black border-dashed rounded-3xl p-4 bg-white/90 shadow-card flex items-center justify-start gap-3 overflow-x-auto min-h-[120px]">
+                    {queueItems.length === 0 ? (
+                      <div className="w-full text-center text-xs font-mono text-muted py-4">
+                        Queue is empty. Enqueue a number box to start.
                       </div>
-                    ))
-                  ) : (
-                    [10, 20, 30].map((val, idx) => (
-                      <div
-                        key={idx}
-                        className={`flex-1 min-w-[70px] p-2.5 rounded-xl border flex flex-col items-center text-xs font-mono shadow-subtle bg-white border-border`}
-                      >
-                        {idx === 0 && (
-                          <span className="text-[8px] font-bold uppercase text-accent-blue bg-blue-100 px-1 rounded mb-1">
-                            FRONT
-                          </span>
-                        )}
-                        <span className="text-sm font-bold text-primary">{val}</span>
-                        {idx === 2 && (
-                          <span className="text-[8px] font-bold uppercase text-accent-emerald bg-emerald-100 px-1 rounded mt-1">
-                            REAR
-                          </span>
-                        )}
-                      </div>
-                    ))
-                  )}
+                    ) : (
+                      queueItems.map((item, idx) => {
+                        const isFront = idx === 0;
+                        const isRear = idx === queueItems.length - 1;
+
+                        return (
+                          <div
+                            key={item.id}
+                            className={`min-w-[85px] p-3 rounded-2xl border-2 flex flex-col items-center justify-center font-mono transition-all duration-300 shadow-subtle ${
+                              item.isNew
+                                ? 'animate-slide-in-right bg-red-50 border-red-600 shadow-red'
+                                : item.isRemoving
+                                ? 'animate-slide-out-left bg-red-100 border-red-400 opacity-30'
+                                : isFront
+                                ? 'bg-black text-white border-black ring-2 ring-red-400'
+                                : 'bg-white text-black border-border'
+                            }`}
+                          >
+                            {isFront && (
+                              <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-red-600 text-white mb-1">
+                                FRONT
+                              </span>
+                            )}
+                            <span className="text-base font-black">
+                              {item.value}
+                            </span>
+                            {isRear && (
+                              <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-zinc-800 text-white mt-1">
+                                REAR
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-xs font-mono text-black bg-surface p-2.5 rounded-xl border border-border flex items-center gap-2">
+                  <Info className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                  <span>{queueLog}</span>
                 </div>
               </div>
             )}
 
-            {/* Binary Search Tree */}
+            {/* 6. ARRAY & SORTING WITH SWAPPING PHYSICAL BOXES */}
+            {(experiment.visualizationType === 'insertion_sort' ||
+              experiment.visualizationType === 'merge_sort' ||
+              experiment.visualizationType === 'quick_sort' ||
+              experiment.category.includes('Sorting')) && (
+              <div className="flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-white via-surface-subtle/30 to-surface min-h-[340px]">
+                {/* Header Toolbar */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-black">Sorting Sequence (Element Swap Movement)</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface border border-border text-secondary">
+                      Step #{sortStep}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleNextSortStep}
+                      className="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-red transition flex items-center gap-1.5"
+                    >
+                      <span>Next Swap Step</span>
+                      <SkipForward className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      onClick={handleResetSort}
+                      className="p-1.5 rounded-lg border border-border bg-white text-muted hover:text-black transition"
+                      title="Reset Array"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Array Physical Boxes Container */}
+                <div className="my-6 flex items-center justify-center gap-3">
+                  {arrayElements.map((el, idx) => (
+                    <div
+                      key={el.id}
+                      className={`relative flex flex-col items-center justify-center w-16 h-20 rounded-2xl border-2 font-mono transition-all duration-500 shadow-subtle ${
+                        el.isSwapping
+                          ? 'bg-red-50 border-red-600 text-red-950 scale-110 -translate-y-3 shadow-red ring-4 ring-red-200'
+                          : 'bg-white border-black text-black hover:border-red-600'
+                      }`}
+                    >
+                      <span className="text-[10px] text-muted font-bold mb-1">
+                        [{idx}]
+                      </span>
+                      <span className="text-lg font-black tracking-tight">
+                        {el.value}
+                      </span>
+                      {el.isSwapping && (
+                        <span className="absolute -top-3 text-[9px] font-sans font-bold px-1 rounded bg-red-600 text-white">
+                          SWAP
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="text-xs font-mono text-black bg-surface p-2.5 rounded-xl border border-border flex items-center gap-2">
+                  <Info className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                  <span>{sortLog}</span>
+                </div>
+              </div>
+            )}
+
+            {/* 7. BINARY SEARCH TREE (BST) HIERARCHY */}
             {experiment.visualizationType === 'bst' && (
-              <div className="flex-1 flex flex-col items-center justify-center py-6">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted mb-4">
-                  Binary Search Tree Hierarchy (Left &lt; Root &lt; Right)
-                </span>
-                <div className="flex flex-col items-center gap-4">
+              <div className="flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-white via-surface-subtle/30 to-surface min-h-[340px]">
+                {/* Search Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-black">BST Node Hierarchy</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface border border-border text-secondary">
+                      Root: {bstRoot}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      value={bstSearchVal}
+                      onChange={(e) => setBstSearchVal(e.target.value)}
+                      placeholder="30"
+                      className="w-14 text-xs font-mono font-bold text-black px-2 py-1 bg-white border border-border rounded-lg"
+                    />
+                    <button
+                      onClick={handleBstSearch}
+                      className="px-3 py-1 text-xs font-bold rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-red transition"
+                    >
+                      Search Path (↓)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tree Visual Structure */}
+                <div className="my-6 flex flex-col items-center gap-4">
                   {/* Root Node */}
-                  <div className="flex flex-col items-center">
-                    <div className="w-12 h-12 rounded-full bg-primary text-white font-mono font-bold text-sm flex items-center justify-center shadow-card">
-                      50
-                    </div>
-                    <span className="text-[9px] font-mono text-muted mt-0.5">0x4010 (ROOT)</span>
+                  <div
+                    className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-mono font-black text-sm border-2 shadow-floating transition-all duration-300 ${
+                      bstActiveNode === 'root'
+                        ? 'bg-red-600 text-white border-red-600 scale-110 shadow-red ring-4 ring-red-200'
+                        : 'bg-black text-white border-black'
+                    }`}
+                  >
+                    <span>{bstRoot}</span>
+                    <span className="text-[8px] text-zinc-300 font-normal">ROOT</span>
                   </div>
 
-                  {/* Level 1 Children */}
-                  <div className="flex items-center gap-16">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full bg-blue-50 text-accent-blue font-mono font-bold text-xs flex items-center justify-center border border-blue-300">
-                        30
-                      </div>
-                      <span className="text-[9px] text-muted mt-0.5">Left Child</span>
+                  {/* Branches */}
+                  <div className="flex items-center gap-20">
+                    <div
+                      className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center font-mono font-bold text-xs border-2 shadow-subtle transition-all duration-300 ${
+                        bstActiveNode === 'left'
+                          ? 'bg-red-50 text-red-600 border-red-600 scale-110 ring-4 ring-red-200'
+                          : 'bg-white text-black border-border'
+                      }`}
+                    >
+                      <span>{bstLeft}</span>
+                      <span className="text-[8px] text-muted">&lt; Left</span>
                     </div>
 
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full bg-emerald-50 text-accent-emerald font-mono font-bold text-xs flex items-center justify-center border border-emerald-300">
-                        70
-                      </div>
-                      <span className="text-[9px] text-muted mt-0.5">Right Child</span>
+                    <div
+                      className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center font-mono font-bold text-xs border-2 shadow-subtle transition-all duration-300 ${
+                        bstActiveNode === 'right'
+                          ? 'bg-red-50 text-red-600 border-red-600 scale-110 ring-4 ring-red-200'
+                          : 'bg-white text-black border-border'
+                      }`}
+                    >
+                      <span>{bstRight}</span>
+                      <span className="text-[8px] text-muted">Right &gt;</span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Level 2 Leaves */}
-                  <div className="flex items-center gap-8 text-[11px] font-mono">
-                    <span className="px-2 py-1 rounded bg-surface border border-border">20 (Left-Left)</span>
-                    <span className="px-2 py-1 rounded bg-surface border border-border">40 (Left-Right)</span>
-                    <span className="px-2 py-1 rounded bg-surface border border-border">60 (Right-Left)</span>
-                    <span className="px-2 py-1 rounded bg-surface border border-border">80 (Right-Right)</span>
-                  </div>
+                <div className="text-xs font-mono text-black bg-surface p-2.5 rounded-xl border border-border flex items-center gap-2">
+                  <Info className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                  <span>{bstLog}</span>
                 </div>
               </div>
             )}
 
-            {/* Dijkstra Graph */}
-            {experiment.visualizationType === 'dijkstra' && (
-              <div className="flex-1 flex flex-col items-center justify-center py-6">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted mb-4">
-                  Dijkstra Shortest Path Distance Relaxation
-                </span>
-                <div className="grid grid-cols-5 gap-2 w-full max-w-lg mb-4">
+            {/* 8. DIJKSTRA & MST GRAPH TRAVERSAL */}
+            {(experiment.visualizationType === 'dijkstra' ||
+              experiment.visualizationType === 'kruskal' ||
+              experiment.visualizationType === 'prim') && (
+              <div className="flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-white via-surface-subtle/30 to-surface min-h-[320px]">
+                <div className="border-b border-border pb-3">
+                  <span className="text-xs font-bold text-black">
+                    Graph Vertex Distance Relaxation & Edge Traversal
+                  </span>
+                </div>
+
+                <div className="my-6 grid grid-cols-5 gap-2.5 w-full max-w-lg mx-auto">
                   {[
                     { v: 0, d: 0, note: 'Source' },
                     { v: 1, d: 4, note: 'Edge (0,1)=4' },
@@ -199,138 +486,85 @@ export function VisualizerEngine({ experiment, astState, activeLine }: Visualize
                     { v: 3, d: 17, note: 'Via V2' },
                     { v: 4, d: 8, note: 'Edge (0,4)=8' }
                   ].map((node) => (
-                    <div key={node.v} className="p-3 bg-white rounded-xl border border-border text-center font-mono shadow-subtle">
+                    <div
+                      key={node.v}
+                      className="p-3 bg-white rounded-2xl border-2 border-black text-center font-mono shadow-subtle hover:border-red-600 hover:scale-105 transition-all"
+                    >
                       <span className="text-[9px] text-muted block">V[{node.v}]</span>
-                      <span className="text-base font-bold text-primary block mt-0.5">{node.d}</span>
+                      <span className="text-base font-black text-red-600 block mt-0.5">{node.d}</span>
                       <span className="text-[8px] text-secondary block mt-1">{node.note}</span>
                     </div>
                   ))}
                 </div>
-                <span className="text-[10px] font-mono text-muted">
-                  Greedy selection: Vertex 0 &rarr; Vertex 1 &rarr; Vertex 4 &rarr; Vertex 2 &rarr; Vertex 3
-                </span>
-              </div>
-            )}
 
-            {/* MST (Kruskal / Prim) */}
-            {(experiment.visualizationType === 'kruskal' || experiment.visualizationType === 'prim') && (
-              <div className="flex-1 flex flex-col items-center justify-center py-6">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted mb-3">
-                  Minimum Spanning Tree (MST Edges & Weights)
-                </span>
-                <div className="flex flex-wrap items-center justify-center gap-3 max-w-md">
-                  {[
-                    { edge: '0 - 1', w: 2 },
-                    { edge: '1 - 2', w: 3 },
-                    { edge: '0 - 3', w: 6 },
-                    { edge: '1 - 4', w: 5 }
-                  ].map((item, idx) => (
-                    <div key={idx} className="p-3 bg-white rounded-xl border border-border font-mono shadow-subtle text-center min-w-[90px]">
-                      <span className="text-xs font-bold text-primary">{item.edge}</span>
-                      <span className="text-[10px] text-accent-emerald font-bold block mt-1">Weight: {item.w}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 px-4 py-2 rounded-xl bg-surface border border-border text-xs font-mono font-bold text-primary">
-                  Total MST Weight: 16 (4 Edges for 5 Vertices)
+                <div className="text-xs font-mono text-black bg-surface p-2.5 rounded-xl border border-border flex items-center gap-2">
+                  <Info className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                  <span>Greedy Shortest Path: Relaxing adjacent edge weights along optimal paths.</span>
                 </div>
               </div>
             )}
 
-            {/* Sorting (Insertion / Merge / Quick) */}
-            {(experiment.visualizationType === 'insertion_sort' ||
-              experiment.visualizationType === 'merge_sort' ||
-              experiment.visualizationType === 'quick_sort') && (
-              <div className="flex-1 flex flex-col items-center justify-center py-6">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted mb-4">
-                  Sorting Sequence & Array Elements
+            {/* 9. UNIVERSAL DYNAMIC MEMORY BOXES FALLBACK FOR ANY USER PROGRAM */}
+            {experiment.visualizationType === 'none' && (
+              <div className="flex-1 p-6 flex flex-col justify-center items-center gap-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted font-mono">
+                  Active Runtime Memory Variables & Registers
                 </span>
-                <div className="flex items-end justify-center gap-2 h-36 w-full max-w-md p-4 bg-surface/30 rounded-2xl border border-border">
-                  {[
-                    { val: 11, h: 25 },
-                    { val: 12, h: 35 },
-                    { val: 22, h: 55 },
-                    { val: 25, h: 65 },
-                    { val: 64, h: 100 }
-                  ].map((bar, idx) => (
-                    <div key={idx} className="flex-1 flex flex-col items-center gap-1">
-                      <span className="text-[10px] font-mono font-bold text-primary">{bar.val}</span>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  {astState.variables && astState.variables.length > 0 ? (
+                    astState.variables.map((v, i) => (
                       <div
-                        className="w-full bg-primary rounded-t-lg transition-all duration-500 shadow-subtle"
-                        style={{ height: `${bar.h}%` }}
-                      />
-                      <span className="text-[9px] font-mono text-muted">[{idx}]</span>
-                    </div>
-                  ))}
-                </div>
-                <span className="text-[10px] font-mono text-muted mt-3">
-                  Sorted Ascending Array Elements [11, 12, 22, 25, 64]
-                </span>
-              </div>
-            )}
-
-            {/* Recursion / Structures / Pointers / Project Default View */}
-            {(experiment.visualizationType === 'recursion' ||
-              experiment.visualizationType === 'structures' ||
-              experiment.visualizationType === 'pointers' ||
-              experiment.visualizationType === 'project') && (
-              <div className="flex-1 flex flex-col justify-center py-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted mb-3 text-center">
-                  RAM Memory Offsets & Scope Variables
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto w-full">
-                  {astState.variables.map((v, i) => (
-                    <div
-                      key={i}
-                      className="p-3 bg-white rounded-xl border border-border shadow-subtle flex items-center justify-between"
-                    >
-                      <div>
-                        <div className="text-xs font-bold text-primary font-mono">{v.name}</div>
-                        <div className="text-[10px] text-muted font-mono">{v.type} &bull; {v.address}</div>
+                        key={i}
+                        className="p-4 rounded-2xl border-2 border-black bg-white shadow-card font-mono text-center min-w-[110px] animate-fade-in hover:border-red-600"
+                      >
+                        <span className="text-[10px] text-muted uppercase block">{v.type} {v.name}</span>
+                        <span className="text-lg font-black text-red-600 block mt-1">{String(v.value)}</span>
+                        <span className="text-[9px] text-muted block mt-1">{v.address}</span>
                       </div>
-                      <div className="px-2.5 py-1 rounded bg-surface border border-border text-xs font-mono font-bold text-accent-blue">
-                        {String(v.value)}
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-xs font-mono text-muted text-center py-8">
+                      Run the C program or step through code to inspect dynamic allocated RAM memory boxes.
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             )}
           </div>
         ) : (
-          /* Memory Table View */
-          <div className="p-4 flex-1 overflow-y-auto">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted">
-                Runtime Stack & Heap Variables
+          /* MEMORY TABLE TAB */
+          <div className="flex-1 p-4 overflow-y-auto space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted font-mono">
+                Active Memory Call Stack & Heap Blocks
               </span>
-              <span className="text-[11px] font-mono text-muted">
-                Call Stack: {astState.callStack.join(' -> ')}
+              <span className="text-xs font-mono text-black font-bold">
+                Call Stack: {astState.callStack.join(' ➔ ')}
               </span>
             </div>
 
             {astState.variables.length === 0 ? (
-              <div className="text-center py-8 text-xs text-muted font-mono">
-                No local variables declared in current scope.
+              <div className="text-center py-16 text-xs text-muted font-mono">
+                No active variables currently in scope.
               </div>
             ) : (
-              <div className="border border-border rounded-md overflow-hidden">
+              <div className="border border-border rounded-xl overflow-hidden">
                 <table className="w-full text-left text-xs font-mono">
                   <thead className="bg-surface border-b border-border text-muted">
                     <tr>
-                      <th className="py-2 px-3">Variable</th>
-                      <th className="py-2 px-3">Type</th>
-                      <th className="py-2 px-3">Address</th>
-                      <th className="py-2 px-3">Current Value</th>
+                      <th className="py-2.5 px-3">Variable</th>
+                      <th className="py-2.5 px-3">Type</th>
+                      <th className="py-2.5 px-3">Memory Address</th>
+                      <th className="py-2.5 px-3">Current Value</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {astState.variables.map((v, i) => (
                       <tr key={i} className="hover:bg-surface-subtle transition">
-                        <td className="py-2 px-3 font-bold text-primary">{v.name}</td>
-                        <td className="py-2 px-3 text-secondary">{v.type}</td>
-                        <td className="py-2 px-3 text-muted">{v.address}</td>
-                        <td className="py-2 px-3 font-semibold text-accent-blue">{String(v.value)}</td>
+                        <td className="py-2.5 px-3 font-bold text-black">{v.name}</td>
+                        <td className="py-2.5 px-3 text-secondary">{v.type}</td>
+                        <td className="py-2.5 px-3 text-muted">{v.address}</td>
+                        <td className="py-2.5 px-3 font-black text-red-600">{String(v.value)}</td>
                       </tr>
                     ))}
                   </tbody>

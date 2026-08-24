@@ -44,7 +44,7 @@ export function Navbar() {
             {isNotHome && (
               <button
                 onClick={() => router.back()}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border bg-surface hover:bg-white text-secondary hover:text-primary text-xs font-semibold shadow-xs transition"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border bg-surface hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-secondary text-xs font-semibold shadow-xs transition"
                 title="Go Back"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
@@ -53,11 +53,11 @@ export function Navbar() {
             )}
 
             <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-mono font-extrabold text-sm shadow-subtle group-hover:bg-primary-hover transition">
+              <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white font-mono font-extrabold text-sm shadow-subtle group-hover:bg-red-600 transition-colors">
                 C
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-black text-primary tracking-tight leading-none">
+                <span className="text-xs font-black text-black tracking-tight leading-none group-hover:text-red-600 transition-colors">
                   DATA STRUCTURES LAB
                 </span>
                 <span className="text-[9px] font-mono text-muted mt-0.5 leading-none">
@@ -81,11 +81,11 @@ export function Navbar() {
                     href={link.href}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                       isActive
-                        ? 'bg-surface text-primary border border-border shadow-xs'
-                        : 'text-secondary hover:text-primary hover:bg-surface-subtle'
+                        ? 'bg-red-50 text-red-600 border border-red-200 font-bold shadow-xs'
+                        : 'text-secondary hover:text-black hover:bg-surface-subtle'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-primary' : 'text-muted'}`} />
+                    <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-red-600' : 'text-muted'}`} />
                     <span>{link.name}</span>
                   </Link>
                 );
@@ -97,16 +97,16 @@ export function Navbar() {
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => setShowLoginModal(true)}
-              className="px-4 py-2 rounded-lg border border-border bg-white hover:bg-surface text-primary text-xs font-bold transition shadow-subtle flex items-center gap-2"
+              className="px-4 py-2 rounded-lg border border-border bg-white hover:bg-red-600 hover:text-white hover:border-red-600 text-black text-xs font-bold transition shadow-subtle flex items-center gap-2 group"
             >
-              <LogIn className="w-3.5 h-3.5" />
+              <LogIn className="w-3.5 h-3.5 group-hover:text-white text-red-600" />
               <span>Login</span>
             </button>
 
             {/* Mobile Menu Hamburger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg border border-border bg-white text-secondary hover:text-primary transition"
+              className="md:hidden p-2 rounded-lg border border-border bg-white text-secondary hover:text-black transition"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -131,11 +131,11 @@ export function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition ${
                     isActive
-                      ? 'bg-surface text-primary border border-border'
-                      : 'text-secondary hover:text-primary hover:bg-surface-subtle'
+                      ? 'bg-red-50 text-red-600 border border-red-200 font-bold'
+                      : 'text-secondary hover:text-black hover:bg-surface-subtle'
                   }`}
                 >
-                  <Icon className="w-4 h-4 text-muted" />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-red-600' : 'text-muted'}`} />
                   <span>{link.name}</span>
                 </Link>
               );

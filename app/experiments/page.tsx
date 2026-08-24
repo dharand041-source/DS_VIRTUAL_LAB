@@ -83,12 +83,12 @@ export default function ExperimentsListingPage() {
       <section className="border-b border-border bg-white py-8 sm:py-12 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-surface text-xs font-medium text-secondary mb-3 shadow-subtle">
-              <span className="w-2 h-2 rounded-full bg-accent-emerald animate-pulse"></span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-200 bg-red-50 text-xs font-medium text-red-700 mb-3 shadow-subtle">
+              <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
               <span>Course N21UIT307 • Department of AI&DS</span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-primary">
+            <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-black">
               Data Structures Laboratory Experiments
             </h1>
 
@@ -101,20 +101,20 @@ export default function ExperimentsListingPage() {
           <div className="bg-surface p-4 rounded-xl border border-border flex items-center gap-4 min-w-[240px] shadow-subtle shrink-0">
             <div
               suppressHydrationWarning
-              className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center font-mono font-bold text-base shadow-subtle"
+              className="w-12 h-12 rounded-xl bg-black text-white flex items-center justify-center font-mono font-bold text-base shadow-subtle"
             >
               {displayCompleted}/{SYLLABUS_EXPERIMENTS.length}
             </div>
             <div>
-              <span className="text-xs font-bold text-primary block">
+              <span className="text-xs font-bold text-black block">
                 Laboratory Progress
               </span>
-              <span suppressHydrationWarning className="text-[11px] text-secondary font-mono">
+              <span suppressHydrationWarning className="text-[11px] text-red-600 font-mono font-bold">
                 {progressPercent}% Completed ({mounted ? user.xp : 0} XP)
               </span>
               <div className="w-28 h-1.5 bg-border rounded-full mt-1.5 overflow-hidden">
                 <div
-                  className="h-full bg-accent-emerald transition-all duration-500"
+                  className="h-full bg-red-600 transition-all duration-500"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
@@ -134,7 +134,7 @@ export default function ExperimentsListingPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search experiments by name, data structure, algorithm..."
-              className="w-full pl-9 pr-3 py-2 text-xs bg-surface border border-border rounded-lg text-primary placeholder:text-muted focus:outline-hidden focus:ring-1 focus:ring-primary font-medium"
+              className="w-full pl-9 pr-3 py-2 text-xs bg-surface border border-border rounded-lg text-black placeholder:text-muted focus:outline-hidden focus:ring-1 focus:ring-red-500 font-medium"
             />
           </div>
 
@@ -143,7 +143,7 @@ export default function ExperimentsListingPage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="text-xs bg-surface border border-border rounded-lg px-2.5 py-2 text-secondary font-medium focus:ring-1 focus:ring-primary focus:outline-hidden"
+              className="text-xs bg-surface border border-border rounded-lg px-2.5 py-2 text-secondary font-medium focus:ring-1 focus:ring-red-500 focus:outline-hidden"
             >
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -155,7 +155,7 @@ export default function ExperimentsListingPage() {
             <select
               value={selectedDifficulty}
               onChange={(e) => setSelectedDifficulty(e.target.value)}
-              className="text-xs bg-surface border border-border rounded-lg px-2.5 py-2 text-secondary font-medium focus:ring-1 focus:ring-primary focus:outline-hidden"
+              className="text-xs bg-surface border border-border rounded-lg px-2.5 py-2 text-secondary font-medium focus:ring-1 focus:ring-red-500 focus:outline-hidden"
             >
               <option value="all">All Difficulties</option>
               <option value="Beginner">Beginner</option>
@@ -166,7 +166,7 @@ export default function ExperimentsListingPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="text-xs bg-surface border border-border rounded-lg px-2.5 py-2 text-secondary font-medium focus:ring-1 focus:ring-primary focus:outline-hidden"
+              className="text-xs bg-surface border border-border rounded-lg px-2.5 py-2 text-secondary font-medium focus:ring-1 focus:ring-red-500 focus:outline-hidden"
             >
               <option value="all">All Status</option>
               <option value="completed">Completed</option>
@@ -181,7 +181,7 @@ export default function ExperimentsListingPage() {
         {filteredExperiments.length === 0 ? (
           <div className="academic-card p-12 text-center my-8 bg-white border border-border rounded-xl">
             <BookOpen className="w-10 h-10 text-muted mx-auto mb-3 opacity-40" />
-            <h3 className="text-base font-bold text-primary">No matching experiments found</h3>
+            <h3 className="text-base font-bold text-black">No matching experiments found</h3>
             <p className="text-xs text-secondary mt-1 max-w-md mx-auto">
               Try adjusting your search keywords or resetting category filters to view all 10 laboratory experiments.
             </p>
@@ -192,7 +192,7 @@ export default function ExperimentsListingPage() {
                 setSelectedDifficulty('all');
                 setSelectedStatus('all');
               }}
-              className="mt-4 px-4 py-1.5 rounded-lg border border-border bg-white hover:bg-surface text-xs font-semibold text-primary transition"
+              className="mt-4 px-4 py-1.5 rounded-lg border border-border bg-white hover:bg-surface text-xs font-semibold text-black transition"
             >
               Reset Filters
             </button>
@@ -205,13 +205,13 @@ export default function ExperimentsListingPage() {
               return (
                 <div
                   key={exp.id}
-                  className="academic-card p-5 sm:p-6 flex flex-col justify-between hover:shadow-floating transition-all duration-200 group bg-white border border-border rounded-xl"
+                  className="academic-card p-5 sm:p-6 flex flex-col justify-between hover:shadow-floating hover:border-red-300 transition-all duration-200 group bg-white border border-border rounded-xl"
                 >
                   <div>
                     {/* Top Badges */}
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-1 rounded-md bg-primary text-white text-xs font-mono font-bold shadow-subtle">
+                        <span className="px-2.5 py-1 rounded-md bg-black text-white text-xs font-mono font-bold shadow-subtle group-hover:bg-red-600 transition-colors">
                           EXP {exp.expNumber < 10 ? `0${exp.expNumber}` : exp.expNumber}
                         </span>
 
@@ -228,7 +228,7 @@ export default function ExperimentsListingPage() {
                                 ? 'bg-blue-50 text-accent-blue border-blue-200'
                                 : exp.difficulty === 'Intermediate'
                                 ? 'bg-amber-50 text-accent-amber border-amber-200'
-                                : 'bg-purple-50 text-purple-700 border-purple-200'
+                                : 'bg-red-50 text-red-700 border-red-200'
                             }`}
                           >
                             {exp.difficulty}
@@ -249,7 +249,7 @@ export default function ExperimentsListingPage() {
                     </div>
 
                     {/* Title & Aim */}
-                    <h2 className="text-base sm:text-lg font-bold text-primary group-hover:text-primary-hover transition">
+                    <h2 className="text-base sm:text-lg font-bold text-black group-hover:text-red-600 transition-colors">
                       {exp.title}
                     </h2>
 
@@ -269,7 +269,7 @@ export default function ExperimentsListingPage() {
                               key={sub.id}
                               className="text-[11px] font-mono px-2 py-0.5 rounded bg-surface-subtle border border-border text-secondary"
                             >
-                              <strong className="text-primary">{sub.subCode}</strong>: {sub.title.replace(/Programs Using |Implementation of /i, '')}
+                              <strong className="text-black">{sub.subCode}</strong>: {sub.title.replace(/Programs Using |Implementation of /i, '')}
                             </span>
                           ))}
                         </div>
@@ -299,7 +299,7 @@ export default function ExperimentsListingPage() {
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/experiments/${exp.id}`}
-                        className="px-4 py-2 rounded-lg border border-border bg-white hover:bg-surface text-primary text-xs font-semibold flex items-center gap-1.5 transition shadow-subtle group-hover:border-zinc-400"
+                        className="px-4 py-2 rounded-lg border border-black bg-white hover:bg-red-600 hover:text-white hover:border-red-600 text-black text-xs font-bold flex items-center gap-1.5 transition-colors shadow-subtle"
                       >
                         <span>Open Experiment</span>
                         <ArrowRight className="w-3.5 h-3.5" />

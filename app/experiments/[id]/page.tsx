@@ -137,8 +137,8 @@ export default function ExperimentDetailPage() {
           range: new monaco.Range(executionResult.errorLine, 1, executionResult.errorLine, 1),
           options: {
             isWholeLine: true,
-            className: 'bg-rose-500/20 border-l-4 border-rose-500',
-            glyphMarginClassName: 'text-rose-500 font-bold',
+            className: 'bg-red-500/20 border-l-4 border-red-600',
+            glyphMarginClassName: 'text-red-600 font-bold',
             hoverMessage: { value: `**Error:** ${executionResult.compilationError || 'Syntax / Logic error'}` }
           }
         }
@@ -226,19 +226,19 @@ export default function ExperimentDetailPage() {
           {/* Left: Breadcrumbs & Title */}
           <div>
             <div className="flex items-center gap-2 text-xs text-muted font-mono mb-1">
-              <Link href="/experiments" className="hover:text-primary transition flex items-center gap-1">
+              <Link href="/experiments" className="hover:text-red-600 transition flex items-center gap-1">
                 <span>Experiments</span>
               </Link>
               <span>/</span>
               <span className="text-secondary">N21UIT307</span>
               <span>/</span>
-              <span className="text-primary font-bold">
+              <span className="text-red-600 font-black">
                 EXP {experiment.expNumber < 10 ? `0${experiment.expNumber}` : experiment.expNumber}
               </span>
             </div>
 
             <div className="flex items-center gap-2.5">
-              <h1 className="text-base sm:text-xl font-bold text-primary tracking-tight">
+              <h1 className="text-base sm:text-xl font-black text-black tracking-tight">
                 {experiment.title}
               </h1>
 
@@ -260,7 +260,7 @@ export default function ExperimentDetailPage() {
             {prevExp ? (
               <Link
                 href={`/experiments/${prevExp.id}`}
-                className="px-3 py-1.5 rounded-lg border border-border bg-white hover:bg-surface text-secondary hover:text-primary text-xs font-semibold flex items-center gap-1 transition shadow-subtle"
+                className="px-3 py-1.5 rounded-lg border border-border bg-white hover:border-red-300 hover:text-red-600 text-secondary text-xs font-semibold flex items-center gap-1 transition shadow-subtle"
                 title={`Previous: ${prevExp.title}`}
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
@@ -276,7 +276,7 @@ export default function ExperimentDetailPage() {
             {nextExp ? (
               <Link
                 href={`/experiments/${nextExp.id}`}
-                className="px-3 py-1.5 rounded-lg border border-border bg-white hover:bg-surface text-primary text-xs font-semibold flex items-center gap-1 transition shadow-subtle"
+                className="px-3 py-1.5 rounded-lg border border-black bg-black hover:bg-red-600 text-white text-xs font-bold flex items-center gap-1 transition shadow-subtle"
                 title={`Next: ${nextExp.title}`}
               >
                 <span className="hidden sm:inline">EXP {nextExp.expNumber}</span>
@@ -329,11 +329,11 @@ export default function ExperimentDetailPage() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-4 py-2.5 rounded-xl text-xs flex items-center gap-2.5 transition whitespace-nowrap ${
                   isActive
-                    ? 'bg-white text-primary border border-border shadow-subtle font-bold'
-                    : 'text-secondary hover:text-primary hover:bg-white/60 font-medium'
+                    ? 'bg-red-50 text-red-600 border border-red-200 shadow-subtle font-black'
+                    : 'text-secondary hover:text-black hover:bg-white/60 font-medium'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-muted'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-red-600' : 'text-muted'}`} />
                 <div className="text-left">
                   <span className="block font-bold">{tab.label}</span>
                   <span className="text-[10px] text-muted font-normal hidden sm:block">
@@ -356,7 +356,7 @@ export default function ExperimentDetailPage() {
             {/* 1. Overview & Complexity Card */}
             <div className="academic-card p-6 bg-white border border-border rounded-xl shadow-subtle space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="px-2.5 py-1 rounded bg-surface border border-border text-xs font-mono font-bold text-primary">
+                <span className="px-2.5 py-1 rounded bg-red-50 border border-red-200 text-xs font-mono font-bold text-red-700">
                   Course Code: N21UIT307 • Anna University Regulation 2021
                 </span>
 
@@ -370,7 +370,7 @@ export default function ExperimentDetailPage() {
               </div>
 
               <div>
-                <h2 className="text-xl font-bold text-primary mb-2">
+                <h2 className="text-xl font-black text-black mb-2">
                   {experiment.title}
                 </h2>
                 <p className="text-sm text-secondary leading-relaxed">
@@ -380,14 +380,14 @@ export default function ExperimentDetailPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div className="p-4 rounded-xl bg-surface/50 border border-border">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted mb-2 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-accent-blue" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-black mb-2 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-red-600" />
                     <span>Learning Objectives</span>
                   </h3>
                   <ul className="space-y-1.5 text-xs text-secondary">
                     {experiment.objectives.map((obj, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="text-primary font-bold">&bull;</span>
+                        <span className="text-red-600 font-bold">&bull;</span>
                         <span>{obj}</span>
                       </li>
                     ))}
@@ -395,8 +395,8 @@ export default function ExperimentDetailPage() {
                 </div>
 
                 <div className="p-4 rounded-xl bg-surface/50 border border-border">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted mb-2 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-accent-amber" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-black mb-2 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-red-600" />
                     <span>Complexity & Characteristics</span>
                   </h3>
                   <div className="space-y-2 text-xs text-secondary font-mono">
@@ -409,14 +409,14 @@ export default function ExperimentDetailPage() {
 
               {/* Real World Analogy */}
               <div className="p-4 rounded-xl bg-surface/60 border border-border space-y-2">
-                <h3 className="text-xs font-bold text-primary flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-accent-amber" />
+                <h3 className="text-xs font-bold text-black flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-red-600" />
                   <span>Real-World Analogy: {experiment.realWorldExample.title}</span>
                 </h3>
                 <p className="text-xs text-secondary leading-relaxed">
                   {experiment.realWorldExample.analogy}
                 </p>
-                <div className="p-2.5 bg-white rounded-lg border border-border text-xs text-primary font-mono">
+                <div className="p-2.5 bg-white rounded-lg border border-border text-xs text-black font-mono">
                   <strong>Industry Application:</strong> {experiment.realWorldExample.application}
                 </div>
               </div>
@@ -425,13 +425,13 @@ export default function ExperimentDetailPage() {
             {/* 2. Official Aim & Problem Statement */}
             <div className="academic-card p-6 bg-white border border-border rounded-xl shadow-subtle space-y-4">
               <div className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-primary" />
-                <h3 className="text-sm font-extrabold uppercase tracking-wider text-primary">
+                <Target className="w-5 h-5 text-red-600" />
+                <h3 className="text-sm font-black uppercase tracking-wider text-black">
                   Official Laboratory Aim
                 </h3>
               </div>
 
-              <div className="p-4 bg-surface rounded-xl border border-border text-sm font-serif italic text-primary leading-relaxed">
+              <div className="p-4 bg-surface rounded-xl border border-border text-sm font-serif italic text-black leading-relaxed border-l-4 border-l-red-600">
                 &ldquo;{experiment.aim}&rdquo;
               </div>
 
@@ -448,8 +448,8 @@ export default function ExperimentDetailPage() {
             {/* 3. Theory & Conceptual Architecture */}
             <div className="academic-card p-6 bg-white border border-border rounded-xl shadow-subtle space-y-5">
               <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-primary" />
-                <h3 className="text-sm font-extrabold uppercase tracking-wider text-primary">
+                <BookOpen className="w-5 h-5 text-red-600" />
+                <h3 className="text-sm font-black uppercase tracking-wider text-black">
                   Conceptual Theory & Memory Model
                 </h3>
               </div>
@@ -460,7 +460,7 @@ export default function ExperimentDetailPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div className="p-4 rounded-xl bg-surface/50 border border-border space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-black">
                     1. WHAT is this Data Structure?
                   </span>
                   <p className="text-xs text-secondary leading-relaxed">
@@ -469,7 +469,7 @@ export default function ExperimentDetailPage() {
                 </div>
 
                 <div className="p-4 rounded-xl bg-surface/50 border border-border space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-black">
                     2. WHY do we need it?
                   </span>
                   <p className="text-xs text-secondary leading-relaxed">
@@ -478,7 +478,7 @@ export default function ExperimentDetailPage() {
                 </div>
 
                 <div className="p-4 rounded-xl bg-surface/50 border border-border space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-black">
                     3. WHERE is it applied?
                   </span>
                   <p className="text-xs text-secondary leading-relaxed">
@@ -487,7 +487,7 @@ export default function ExperimentDetailPage() {
                 </div>
 
                 <div className="p-4 rounded-xl bg-surface/50 border border-border space-y-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-black">
                     4. HOW does it operate in RAM?
                   </span>
                   <p className="text-xs text-secondary leading-relaxed font-mono">
@@ -500,8 +500,8 @@ export default function ExperimentDetailPage() {
             {/* 4. Step-by-Step Algorithmic Procedure & Pseudocode */}
             <div className="academic-card p-6 bg-white border border-border rounded-xl shadow-subtle space-y-5">
               <div className="flex items-center gap-2">
-                <FileCode className="w-5 h-5 text-primary" />
-                <h3 className="text-sm font-extrabold uppercase tracking-wider text-primary">
+                <FileCode className="w-5 h-5 text-red-600" />
+                <h3 className="text-sm font-black uppercase tracking-wider text-black">
                   Step-by-Step Algorithmic Procedure
                 </h3>
               </div>
@@ -513,10 +513,10 @@ export default function ExperimentDetailPage() {
                     key={idx}
                     className="p-3.5 rounded-xl border border-border bg-surface/40 flex items-start gap-3"
                   >
-                    <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-mono font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-6 h-6 rounded-full bg-black text-white text-xs font-mono font-bold flex items-center justify-center shrink-0 mt-0.5">
                       {idx + 1}
                     </div>
-                    <div className="text-xs text-primary font-medium leading-relaxed">
+                    <div className="text-xs text-black font-medium leading-relaxed">
                       {step}
                     </div>
                   </div>
@@ -528,7 +528,7 @@ export default function ExperimentDetailPage() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted block mb-2 font-mono">
                   Formal Algorithm Pseudocode
                 </span>
-                <pre className="p-4 rounded-xl bg-surface border border-border text-xs font-mono text-primary overflow-x-auto leading-relaxed">
+                <pre className="p-4 rounded-xl bg-surface border border-border text-xs font-mono text-black overflow-x-auto leading-relaxed">
                   {experiment.pseudocode}
                 </pre>
               </div>
@@ -537,14 +537,14 @@ export default function ExperimentDetailPage() {
             {/* Bottom Proceed CTA */}
             <div className="p-6 bg-white border border-border rounded-xl shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
-                <h4 className="text-sm font-bold text-primary">Theory & Algorithm Understood?</h4>
+                <h4 className="text-sm font-bold text-black">Theory & Algorithm Understood?</h4>
                 <p className="text-xs text-secondary mt-0.5">
                   Launch the interactive coding lab to write C code, visualize pointers in real-time, and run test cases.
                 </p>
               </div>
               <button
                 onClick={() => setActiveTab('lab')}
-                className="px-6 py-3 rounded-xl bg-primary text-white hover:bg-primary-hover text-xs font-bold flex items-center gap-2 shadow-subtle transition shrink-0"
+                className="px-6 py-3 rounded-xl bg-red-600 text-white hover:bg-red-700 text-xs font-bold flex items-center gap-2 shadow-red transition shrink-0"
               >
                 <span>Proceed to Interactive Coding Lab</span>
                 <ArrowRight className="w-4 h-4" />
@@ -562,7 +562,7 @@ export default function ExperimentDetailPage() {
             {experiment.subExperiments && experiment.subExperiments.length > 0 && (
               <div className="p-3 bg-white border border-border rounded-xl shadow-subtle flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-primary font-mono">
+                  <span className="text-xs font-bold text-black font-mono">
                     Select Sub-Experiment Module:
                   </span>
                   <div className="flex gap-1.5">
@@ -572,8 +572,8 @@ export default function ExperimentDetailPage() {
                         onClick={() => handleSubExpChange(idx)}
                         className={`px-3 py-1 text-xs font-mono font-bold rounded-lg border transition ${
                           selectedSubExp === idx
-                            ? 'bg-primary text-white border-primary shadow-subtle'
-                            : 'bg-surface text-secondary border-border hover:text-primary'
+                            ? 'bg-red-600 text-white border-red-600 shadow-subtle'
+                            : 'bg-surface text-secondary border-border hover:text-black hover:border-red-300'
                         }`}
                       >
                         {sub.subCode}
@@ -590,9 +590,9 @@ export default function ExperimentDetailPage() {
 
             {/* Error Diagnostics Alert Banner if Code Execution Failed */}
             {executionResult && !executionResult.success && (
-              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 shadow-subtle animate-fade-in space-y-2">
+              <div className="p-4 rounded-xl bg-red-50 border border-red-200 shadow-subtle animate-fade-in space-y-2">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2 text-accent-rose font-bold text-xs">
+                  <div className="flex items-center gap-2 text-red-600 font-bold text-xs">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>
                       Compilation / Execution Error {executionResult.errorLine && `at Line ${executionResult.errorLine}`}
@@ -606,20 +606,20 @@ export default function ExperimentDetailPage() {
                           editorRef.current.revealLineInCenter(executionResult.errorLine);
                         }
                       }}
-                      className="text-[11px] font-mono px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-300 font-bold hover:bg-rose-200 transition"
+                      className="text-[11px] font-mono px-2 py-0.5 rounded bg-red-100 text-red-800 border border-red-300 font-bold hover:bg-red-200 transition"
                     >
                       Jump to Line {executionResult.errorLine} &rarr;
                     </button>
                   )}
                 </div>
 
-                <pre className="text-xs font-mono text-rose-950 bg-rose-100/60 p-2.5 rounded-lg whitespace-pre-wrap">
+                <pre className="text-xs font-mono text-red-950 bg-red-100/60 p-2.5 rounded-lg whitespace-pre-wrap">
                   {executionResult.compilationError || executionResult.stdout}
                 </pre>
 
                 {executionResult.beginnerErrorExplanation && (
-                  <div className="text-xs text-rose-900 bg-white/80 p-2.5 rounded-lg border border-rose-200/80">
-                    <strong className="text-rose-950">💡 Why this error happened & How to fix it:</strong>{' '}
+                  <div className="text-xs text-red-900 bg-white/80 p-2.5 rounded-lg border border-red-200/80">
+                    <strong className="text-red-950">💡 Why this error happened & How to fix it:</strong>{' '}
                     {executionResult.beginnerErrorExplanation}
                   </div>
                 )}
@@ -633,8 +633,8 @@ export default function ExperimentDetailPage() {
                 {/* Editor Header */}
                 <div className="px-4 py-2.5 border-b border-border bg-surface flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Code2 className="w-4 h-4 text-primary" />
-                    <span className="text-xs font-bold text-primary font-mono">
+                    <Code2 className="w-4 h-4 text-red-600" />
+                    <span className="text-xs font-bold text-black font-mono">
                       {experiment.shortTitle.toLowerCase().replace(/\s+/g, '_')}.c
                     </span>
                   </div>
@@ -642,7 +642,7 @@ export default function ExperimentDetailPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleResetCode}
-                      className="p-1.5 rounded-md border border-border bg-white hover:bg-surface text-muted hover:text-primary text-xs transition"
+                      className="p-1.5 rounded-md border border-border bg-white hover:bg-surface text-muted hover:text-black text-xs transition"
                       title="Reset Code to Default"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -651,12 +651,12 @@ export default function ExperimentDetailPage() {
                     <button
                       onClick={handleRunProgram}
                       disabled={isRunning}
-                      className="px-3.5 py-1.5 rounded-lg border border-border bg-white hover:bg-surface text-primary text-xs font-bold flex items-center gap-1.5 shadow-subtle transition disabled:opacity-50"
+                      className="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-red transition disabled:opacity-50"
                     >
                       {isRunning ? (
-                        <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <Play className="w-3.5 h-3.5 fill-current text-primary" />
+                        <Play className="w-3.5 h-3.5 fill-current text-white" />
                       )}
                       <span>{isRunning ? 'Compiling...' : 'Run Code'}</span>
                     </button>
@@ -698,11 +698,11 @@ export default function ExperimentDetailPage() {
                     <span className="text-[10px] uppercase font-bold text-muted px-1.5 py-0.5 rounded bg-white border border-border">
                       L{activeLine}
                     </span>
-                    <span className="truncate text-primary font-semibold">
+                    <span className="truncate text-black font-semibold">
                       {astState.activeLineText || '// (empty line)'}
                     </span>
                   </div>
-                  <span className="text-[10px] text-accent-emerald font-sans font-semibold shrink-0">
+                  <span className="text-[10px] text-red-600 font-sans font-bold shrink-0">
                     ✨ AI Synchronized
                   </span>
                 </div>
@@ -717,8 +717,8 @@ export default function ExperimentDetailPage() {
                       onClick={() => setLabRightTab('visual')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
                         labRightTab === 'visual'
-                          ? 'bg-white text-primary border border-border shadow-subtle'
-                          : 'text-secondary hover:text-primary'
+                          ? 'bg-red-50 text-red-600 border border-red-200 shadow-xs'
+                          : 'text-secondary hover:text-black'
                       }`}
                     >
                       <Eye className="w-3.5 h-3.5" />
@@ -729,11 +729,11 @@ export default function ExperimentDetailPage() {
                       onClick={() => setLabRightTab('ai')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
                         labRightTab === 'ai'
-                          ? 'bg-white text-primary border border-border shadow-subtle'
-                          : 'text-secondary hover:text-primary'
+                          ? 'bg-red-50 text-red-600 border border-red-200 shadow-xs'
+                          : 'text-secondary hover:text-black'
                       }`}
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-accent-indigo" />
+                      <Sparkles className="w-3.5 h-3.5 text-red-600" />
                       <span>AI Teacher</span>
                     </button>
 
@@ -741,11 +741,11 @@ export default function ExperimentDetailPage() {
                       onClick={() => setLabRightTab('output')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
                         labRightTab === 'output'
-                          ? 'bg-white text-primary border border-border shadow-subtle'
-                          : 'text-secondary hover:text-primary'
+                          ? 'bg-red-50 text-red-600 border border-red-200 shadow-xs'
+                          : 'text-secondary hover:text-black'
                       }`}
                     >
-                      <Terminal className="w-3.5 h-3.5 text-accent-emerald" />
+                      <Terminal className="w-3.5 h-3.5 text-red-600" />
                       <span>Output & Tests</span>
                     </button>
 
@@ -753,8 +753,8 @@ export default function ExperimentDetailPage() {
                       onClick={() => setLabRightTab('memory')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
                         labRightTab === 'memory'
-                          ? 'bg-white text-primary border border-border shadow-subtle'
-                          : 'text-secondary hover:text-primary'
+                          ? 'bg-red-50 text-red-600 border border-red-200 shadow-xs'
+                          : 'text-secondary hover:text-black'
                       }`}
                     >
                       <Database className="w-3.5 h-3.5" />
@@ -776,7 +776,7 @@ export default function ExperimentDetailPage() {
                         <span className="text-xs font-bold uppercase tracking-wider text-muted font-mono">
                           Real-Time AST Memory State
                         </span>
-                        <span className="text-[10px] font-mono text-accent-emerald bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-bold">
+                        <span className="text-[10px] font-mono text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-200 font-bold">
                           ● Active AST Engine
                         </span>
                       </div>
@@ -799,7 +799,7 @@ export default function ExperimentDetailPage() {
                             <span className="text-[10px] font-bold uppercase text-muted block mb-1">
                               Purpose & What It Does
                             </span>
-                            <p className="text-xs text-primary font-semibold">
+                            <p className="text-xs text-black font-semibold">
                               {astState.lineExplanation.purpose}
                             </p>
                             <p className="text-xs text-secondary mt-1.5 leading-relaxed">
@@ -808,7 +808,7 @@ export default function ExperimentDetailPage() {
                           </div>
 
                           <div className="p-3.5 rounded-xl border border-border bg-white">
-                            <span className="text-[10px] font-bold uppercase text-muted block mb-1">
+                            <span className="text-[10px] font-bold uppercase text-red-600 block mb-1">
                               💡 Beginner Conceptual Analogy
                             </span>
                             <p className="text-xs text-secondary leading-relaxed">
@@ -841,7 +841,7 @@ export default function ExperimentDetailPage() {
                           <div className={`p-3.5 rounded-xl border flex items-center justify-between ${
                             executionResult.success
                               ? 'bg-emerald-50 border-emerald-200 text-accent-emerald'
-                              : 'bg-rose-50 border-rose-200 text-accent-rose'
+                              : 'bg-red-50 border-red-200 text-red-600'
                           }`}>
                             <div className="flex items-center gap-2 font-bold text-xs">
                               {executionResult.success ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
@@ -861,7 +861,7 @@ export default function ExperimentDetailPage() {
                             <span className="text-[10px] font-bold uppercase text-muted block mb-1 font-mono">
                               Program Standard Output (stdout):
                             </span>
-                            <pre className="p-3 rounded-xl bg-surface border border-border text-xs font-mono text-primary whitespace-pre-wrap leading-relaxed">
+                            <pre className="p-3 rounded-xl bg-surface border border-border text-xs font-mono text-black whitespace-pre-wrap leading-relaxed">
                               {executionResult.stdout || 'Program exited cleanly with code 0.'}
                             </pre>
                           </div>
@@ -875,13 +875,13 @@ export default function ExperimentDetailPage() {
                               {executionResult.results.map((r, i) => (
                                 <div key={i} className="p-3 bg-surface/50 rounded-xl border border-border text-xs font-mono space-y-1">
                                   <div className="flex items-center justify-between">
-                                    <span className="font-bold text-primary">{r.name}</span>
-                                    <span className={r.passed ? 'text-accent-emerald font-bold' : 'text-accent-rose font-bold'}>
+                                    <span className="font-bold text-black">{r.name}</span>
+                                    <span className={r.passed ? 'text-accent-emerald font-bold' : 'text-red-600 font-bold'}>
                                       {r.passed ? '✓ PASSED' : '✗ FAILED'}
                                     </span>
                                   </div>
                                   {!r.passed && r.errorMessage && (
-                                    <p className="text-accent-rose text-[11px] pt-1">
+                                    <p className="text-red-600 text-[11px] pt-1">
                                       {r.errorMessage}
                                     </p>
                                   )}
@@ -893,7 +893,7 @@ export default function ExperimentDetailPage() {
                       ) : (
                         <div className="text-center py-16 space-y-2 text-xs text-muted">
                           <Terminal className="w-8 h-8 text-muted/40 mx-auto" />
-                          <p>Click <strong>"Run Code"</strong> in the editor toolbar to compile and test against test cases.</p>
+                          <p>Click <strong className="text-red-600">"Run Code"</strong> in the editor toolbar to compile and test against test cases.</p>
                         </div>
                       )}
                     </div>
@@ -929,10 +929,10 @@ export default function ExperimentDetailPage() {
                             <tbody className="divide-y divide-border">
                               {astState.variables.map((v, i) => (
                                 <tr key={i} className="hover:bg-surface-subtle transition">
-                                  <td className="py-2 px-3 font-bold text-primary">{v.name}</td>
+                                  <td className="py-2 px-3 font-bold text-black">{v.name}</td>
                                   <td className="py-2 px-3 text-secondary">{v.type}</td>
                                   <td className="py-2 px-3 text-muted">{v.address}</td>
-                                  <td className="py-2 px-3 font-bold text-accent-blue">{String(v.value)}</td>
+                                  <td className="py-2 px-3 font-bold text-red-600">{String(v.value)}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -948,14 +948,14 @@ export default function ExperimentDetailPage() {
             {/* Bottom Proceed CTA to Assignment & Viva */}
             <div className="p-4 bg-white border border-border rounded-xl shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-3">
               <div>
-                <h4 className="text-xs font-bold text-primary">Lab Code Complete?</h4>
+                <h4 className="text-xs font-bold text-black">Lab Code Complete?</h4>
                 <p className="text-[11px] text-secondary">
                   Proceed to take the assessment quiz and 10-second typing viva challenge.
                 </p>
               </div>
               <button
                 onClick={() => setActiveTab('assessment')}
-                className="px-5 py-2.5 rounded-xl bg-primary text-white hover:bg-primary-hover text-xs font-bold flex items-center gap-1.5 shadow-subtle transition shrink-0"
+                className="px-5 py-2.5 rounded-xl bg-black hover:bg-red-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-subtle transition shrink-0"
               >
                 <span>Take Assignment & Viva</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -972,12 +972,12 @@ export default function ExperimentDetailPage() {
             {/* Assessment & Viva Header Banner */}
             <div className="academic-card p-6 bg-white border border-border rounded-xl shadow-subtle space-y-2">
               <div className="flex items-center gap-2 mb-1">
-                <FileCheck className="w-5 h-5 text-primary" />
-                <span className="text-xs font-mono font-bold text-muted uppercase">
+                <FileCheck className="w-5 h-5 text-red-600" />
+                <span className="text-xs font-mono font-bold text-red-700 uppercase">
                   ACADEMIC EVALUATION & VIVA VOCE • N21UIT307
                 </span>
               </div>
-              <h2 className="text-xl font-bold text-primary tracking-tight">
+              <h2 className="text-xl font-black text-black tracking-tight">
                 Assignment Assessment & Laboratory Viva: {experiment.shortTitle}
               </h2>
               <p className="text-xs text-secondary leading-relaxed">
@@ -992,11 +992,11 @@ export default function ExperimentDetailPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-blue-50 text-accent-blue flex items-center justify-center font-bold text-sm border border-blue-200">
+                      <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-sm border border-red-200">
                         1
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-primary">
+                        <h3 className="text-sm font-bold text-black">
                           Concept & Code Assessment
                         </h3>
                         <span className="text-[11px] font-mono text-muted">
@@ -1011,7 +1011,7 @@ export default function ExperimentDetailPage() {
                   </p>
 
                   <div className="p-3 bg-surface rounded-xl border border-border text-xs font-mono space-y-1">
-                    <div className="text-primary font-bold">Evaluation Criteria:</div>
+                    <div className="text-black font-bold">Evaluation Criteria:</div>
                     <div className="text-secondary text-[11px]">&bull; Output prediction under test inputs</div>
                     <div className="text-secondary text-[11px]">&bull; Pointer link traversal accuracy</div>
                     <div className="text-secondary text-[11px]">&bull; Time & Space complexity analysis</div>
@@ -1020,9 +1020,9 @@ export default function ExperimentDetailPage() {
 
                 <button
                   onClick={() => setShowAssessmentModal(true)}
-                  className="w-full py-3 rounded-xl border border-border bg-white hover:bg-surface text-primary text-xs font-bold flex items-center justify-center gap-2 shadow-subtle transition group"
+                  className="w-full py-3 rounded-xl border border-black bg-white hover:bg-red-600 hover:text-white hover:border-red-600 text-black text-xs font-bold flex items-center justify-center gap-2 shadow-subtle transition group"
                 >
-                  <Play className="w-3.5 h-3.5 fill-current text-primary group-hover:scale-110 transition" />
+                  <Play className="w-3.5 h-3.5 fill-current text-red-600 group-hover:text-white group-hover:scale-110 transition" />
                   <span>Launch Assessment Quiz (+30 XP)</span>
                 </button>
               </div>
@@ -1032,11 +1032,11 @@ export default function ExperimentDetailPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm border border-amber-200">
+                      <div className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center font-bold text-sm">
                         2
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-primary">
+                        <h3 className="text-sm font-bold text-black">
                           10-Second Typing Viva Voce
                         </h3>
                         <span className="text-[11px] font-mono text-muted">
@@ -1051,7 +1051,7 @@ export default function ExperimentDetailPage() {
                   </p>
 
                   <div className="p-3 bg-surface rounded-xl border border-border text-xs font-mono space-y-1">
-                    <div className="text-primary font-bold">Viva Examination Rules:</div>
+                    <div className="text-black font-bold">Viva Examination Rules:</div>
                     <div className="text-secondary text-[11px]">&bull; Strict 10-second countdown per question</div>
                     <div className="text-secondary text-[11px]">&bull; Real-time AI keyword & semantic matching</div>
                     <div className="text-secondary text-[11px]">&bull; Instant Anna University marks attribution</div>
@@ -1060,9 +1060,9 @@ export default function ExperimentDetailPage() {
 
                 <button
                   onClick={() => setShowVivaModal(true)}
-                  className="w-full py-3 rounded-xl border border-border bg-white hover:bg-surface text-primary text-xs font-bold flex items-center justify-center gap-2 shadow-subtle transition group"
+                  className="w-full py-3 rounded-xl bg-black hover:bg-red-600 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-subtle transition group"
                 >
-                  <Play className="w-3.5 h-3.5 fill-current text-primary group-hover:scale-110 transition" />
+                  <Play className="w-3.5 h-3.5 fill-current text-white group-hover:scale-110 transition" />
                   <span>Start 10s Viva Challenge (+100 XP)</span>
                 </button>
               </div>
@@ -1071,14 +1071,14 @@ export default function ExperimentDetailPage() {
             {/* Bottom Proceed CTA to Feedback */}
             <div className="p-6 bg-white border border-border rounded-xl shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
-                <h4 className="text-sm font-bold text-primary">Completed Assessment & Viva?</h4>
+                <h4 className="text-sm font-bold text-black">Completed Assessment & Viva?</h4>
                 <p className="text-xs text-secondary mt-0.5">
                   Submit your learning feedback to earn +10 XP and complete this experiment module.
                 </p>
               </div>
               <button
                 onClick={() => setActiveTab('feedback')}
-                className="px-6 py-3 rounded-xl bg-primary text-white hover:bg-primary-hover text-xs font-bold flex items-center gap-2 shadow-subtle transition shrink-0"
+                className="px-6 py-3 rounded-xl bg-red-600 text-white hover:bg-red-700 text-xs font-bold flex items-center gap-2 shadow-red transition shrink-0"
               >
                 <span>Proceed to Student Feedback</span>
                 <ArrowRight className="w-4 h-4" />
@@ -1095,20 +1095,20 @@ export default function ExperimentDetailPage() {
             <div className="academic-card p-6 bg-white border border-border rounded-xl shadow-subtle">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-primary" />
-                  <h2 className="text-base font-bold text-primary">
+                  <MessageSquare className="w-5 h-5 text-red-600" />
+                  <h2 className="text-base font-bold text-black">
                     Educational Experience Feedback: {experiment.shortTitle}
                   </h2>
                 </div>
-                <span className="text-xs font-mono text-muted">
+                <span className="text-xs font-mono text-red-600 font-bold">
                   Earn +10 XP
                 </span>
               </div>
 
               {feedbackSubmitted ? (
                 <div className="p-8 text-center bg-surface rounded-xl border border-border space-y-2">
-                  <CheckCircle2 className="w-10 h-10 text-accent-emerald mx-auto" />
-                  <h3 className="text-sm font-bold text-primary">Thank You for Your Feedback!</h3>
+                  <CheckCircle2 className="w-10 h-10 text-red-600 mx-auto" />
+                  <h3 className="text-sm font-bold text-black">Thank You for Your Feedback!</h3>
                   <p className="text-xs text-secondary max-w-md mx-auto">
                     Your feedback has been submitted to the Department of AI&DS curriculum evaluation system and +10 XP has been awarded to your profile.
                   </p>
@@ -1129,7 +1129,7 @@ export default function ExperimentDetailPage() {
                         { key: 'overall', label: 'Overall Experience' }
                       ].map((item) => (
                         <div key={item.key} className="p-3 bg-surface rounded-xl border border-border flex items-center justify-between">
-                          <span className="text-xs font-semibold text-primary">{item.label}</span>
+                          <span className="text-xs font-semibold text-black">{item.label}</span>
                           <div className="flex gap-1">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <button
@@ -1157,7 +1157,7 @@ export default function ExperimentDetailPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-bold text-primary block mb-1">
+                      <label className="text-xs font-bold text-black block mb-1">
                         What helped you understand the concept most?
                       </label>
                       <textarea
@@ -1165,12 +1165,12 @@ export default function ExperimentDetailPage() {
                         value={helpedMost}
                         onChange={(e) => setHelpedMost(e.target.value)}
                         placeholder="e.g. Line-by-line explanation of pointers and the animated node boxes..."
-                        className="w-full text-xs p-3 bg-surface border border-border rounded-xl text-primary focus:ring-1 focus:ring-primary focus:outline-hidden"
+                        className="w-full text-xs p-3 bg-surface border border-border rounded-xl text-black focus:ring-1 focus:ring-red-500 focus:outline-hidden"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-primary block mb-1">
+                      <label className="text-xs font-bold text-black block mb-1">
                         What was difficult or confusing?
                       </label>
                       <textarea
@@ -1178,7 +1178,7 @@ export default function ExperimentDetailPage() {
                         value={difficultPart}
                         onChange={(e) => setDifficultPart(e.target.value)}
                         placeholder="e.g. Understanding why malloc() returns a void pointer..."
-                        className="w-full text-xs p-3 bg-surface border border-border rounded-xl text-primary focus:ring-1 focus:ring-primary focus:outline-hidden"
+                        className="w-full text-xs p-3 bg-surface border border-border rounded-xl text-black focus:ring-1 focus:ring-red-500 focus:outline-hidden"
                       />
                     </div>
                   </div>
@@ -1189,14 +1189,14 @@ export default function ExperimentDetailPage() {
                         type="checkbox"
                         checked={isAnonymous}
                         onChange={(e) => setIsAnonymous(e.target.checked)}
-                        className="rounded border-border text-primary focus:ring-primary"
+                        className="rounded border-border text-red-600 focus:ring-red-500"
                       />
                       <span>Submit anonymously (identity hidden from peer leaderboard)</span>
                     </label>
 
                     <button
                       type="submit"
-                      className="px-6 py-2.5 rounded-lg border border-border bg-white hover:bg-surface text-primary text-xs font-bold flex items-center gap-2 shadow-subtle transition"
+                      className="px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-2 shadow-red transition"
                     >
                       <Send className="w-3.5 h-3.5" />
                       <span>Submit Feedback (+10 XP)</span>

@@ -1,14 +1,32 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ASTVisualNode } from '@/lib/types';
-import { Play, RotateCcw, Plus, Trash2, ArrowRight, Info } from 'lucide-react';
+import {
+  Play,
+  RotateCcw,
+  Plus,
+  Trash2,
+  ArrowRight,
+  Info,
+  Sparkles,
+  Zap,
+  Search,
+  CheckCircle2,
+  Layers,
+  ChevronRight
+} from 'lucide-react';
 
 interface LinkedListVisualizerProps {
-  nodes: ASTVisualNode[];
+  nodes?: ASTVisualNode[];
   activeLine?: number;
   highlightedNodeId?: string;
   onNodeClick?: (node: ASTVisualNode) => void;
+}
+
+interface AnimatedLLNode extends ASTVisualNode {
+  isNew?: boolean;
+  isDeleting?: boolean;
 }
 
 export function LinkedListVisualizer({
@@ -17,49 +35,73 @@ export function LinkedListVisualizer({
   highlightedNodeId,
   onNodeClick
 }: LinkedListVisualizerProps) {
-  const [nodes, setNodes] = useState<ASTVisualNode[]>(
-    initialNodes && initialNodes.length > 0
-      ? initialNodes
-      : [
-          { id: 'n1', value: 20, address: '0x1040', nextAddress: '0x1020', isHead: true },
-          { id: 'n2', value: 10, address: '0x1020', nextAddress: '0x1060' },
-          { id: 'n3', value: 30, address: '0x1060', nextAddress: '0x1080' },
-          { id: 'n4', value: 40, address: '0x1080', nextAddress: 'NULL', isTail: true }
-        ]
-  );
+  const [nodes, setNodes] = useState<AnimatedLLNode[]>([
+    { id: 'n1', value: 20, address: '0x1040', nextAddress: '0x1020', isHead: true },
+    { id: 'n2', value: 10, address: '0x1020', nextAddress: '0x1060' },
+    { id: 'n3', value: 30, address: '0x1060', nextAddress: '0x1080' },
+    { id: 'n4', value: 40, address: '0x1080', nextAddress: 'NULL', isTail: true }
+  ]);
 
   const [traversingIndex, setTraversingIndex] = useState<number | null>(null);
   const [newValueInput, setNewValueInput] = useState<string>('50');
-  const [actionLog, setActionLog] = useState<string>('Linked List initialized. HEAD -> 20 -> 10 -> 30 -> 40 -> NULL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchFoundIndex, setSearchFoundIndex] = useState<number | null>(null);
+  const [actionLog, setActionLog] = useState<string>(
+    'Singly Linked List initialized. Dynamic Heap Allocation via struct Node*.'
+  );
 
-  // Insert at Beginning (O(1))
-  const handleInsertHead = () => {
-    const val = parseInt(newValueInput, 10) || Math.floor(Math.random() * 90) + 10;
+  // Sync with code AST state if provided
+  useEffect(() => {
+    if (initialNodes && initialNodes.length > 0) {
+      setNodes(initialNodes.map((n) => ({ ...n })));
+    }
+  }, [initialNodes]);
+
+  // Insert at Beginning (O(1)) with Drop-in Animation
+  const handleInsertHead = (customVal?: number) => {
+    const val = customVal !== undefined ? customVal : (parseInt(newValueInput, 10) || Math.floor(Math.random() * 90) + 10);
     const newAddr = `0x${(0x1000 + Math.floor(Math.random() * 4000)).toString(16)}`;
     const newHeadId = `node-${Date.now()}`;
-    
+
     const oldHead = nodes[0];
-    const newHead: ASTVisualNode = {
+    const newHead: AnimatedLLNode = {
       id: newHeadId,
       value: val,
       address: newAddr,
       nextAddress: oldHead ? oldHead.address : 'NULL',
-      isHead: true
+      isHead: true,
+      isNew: true
     };
 
-    const updatedNodes = [newHead, ...nodes.map(n => ({ ...n, isHead: false }))];
+    const updatedNodes = [newHead, ...nodes.map((n) => ({ ...n, isHead: false }))];
     setNodes(updatedNodes);
-    setActionLog(`Allocated Node(${val}) at ${newAddr}. Updated HEAD -> ${val}. (O(1) Time)`);
+    setActionLog(`✨ INSERT_HEAD(${val}): Allocated heap node at ${newAddr}. HEAD -> ${val} (O(1) Time)`);
+
+    setTimeout(() => {
+      setNodes((prev) =>
+        prev.map((n) => (n.id === newHeadId ? { ...n, isNew: false } : n))
+      );
+    }, 600);
   };
 
-  // Insert at End (O(n))
-  const handleInsertTail = () => {
-    const val = parseInt(newValueInput, 10) || Math.floor(Math.random() * 90) + 10;
+  // Insert at End (O(n)) with Drop-in Animation
+  const handleInsertTail = (customVal?: number) => {
+    const val = customVal !== undefined ? customVal : (parseInt(newValueInput, 10) || Math.floor(Math.random() * 90) + 10);
     const newAddr = `0x${(0x1000 + Math.floor(Math.random() * 4000)).toString(16)}`;
     const newTailId = `node-${Date.now()}`;
 
     if (nodes.length === 0) {
-      setNodes([{ id: newTailId, value: val, address: newAddr, nextAddress: 'NULL', isHead: true, isTail: true }]);
+      setNodes([
+        {
+          id: newTailId,
+          value: val,
+          address: newAddr,
+          nextAddress: 'NULL',
+          isHead: true,
+          isTail: true,
+          isNew: true
+        }
+      ]);
       return;
     }
 
@@ -75,41 +117,83 @@ export function LinkedListVisualizer({
       value: val,
       address: newAddr,
       nextAddress: 'NULL',
-      isTail: true
+      isTail: true,
+      isNew: true
     });
 
     setNodes(updated);
-    setActionLog(`Traversed to tail and appended Node(${val}) at ${newAddr}. (O(n) Time)`);
+    setActionLog(`✨ INSERT_TAIL(${val}): Traversed to tail and appended Node(${val}) at ${newAddr}. (O(n) Time)`);
+
+    setTimeout(() => {
+      setNodes((prev) =>
+        prev.map((n) => (n.id === newTailId ? { ...n, isNew: false } : n))
+      );
+    }, 600);
   };
 
-  // Delete Head (O(1))
+  // Delete Head with Fly-out Animation
   const handleDeleteHead = () => {
     if (nodes.length === 0) {
-      setActionLog('Underflow: Linked list is already empty.');
+      setActionLog('❌ Underflow: Linked list is already empty.');
       return;
     }
+
     const deleted = nodes[0];
-    const remaining = nodes.slice(1).map((n, idx) => ({ ...n, isHead: idx === 0 }));
-    setNodes(remaining);
-    setActionLog(`Freed memory at ${deleted.address} (Value: ${deleted.value}). HEAD moved to next node.`);
+    setNodes((prev) =>
+      prev.map((n, i) => (i === 0 ? { ...n, isDeleting: true } : n))
+    );
+    setActionLog(`🗑️ DELETE_HEAD: Freeing memory at ${deleted.address} (Value: ${deleted.value}). HEAD moved to next.`);
+
+    setTimeout(() => {
+      const remaining = nodes
+        .slice(1)
+        .map((n, idx) => ({ ...n, isHead: idx === 0, isDeleting: false }));
+      setNodes(remaining);
+    }, 400);
   };
 
-  // Step-by-step traversal
+  // Step-by-Step Traversal Animation
   const handleStartTraversal = () => {
+    if (nodes.length === 0) return;
     setTraversingIndex(0);
-    setActionLog(`Starting traversal from HEAD (${nodes[0]?.address || 'NULL'})...`);
-    let idx = 0;
+    setActionLog(`🔍 Traversal: Starting at HEAD Node(${nodes[0].value}) at ${nodes[0].address}...`);
+
+    let current = 0;
     const interval = setInterval(() => {
-      idx++;
-      if (idx < nodes.length) {
-        setTraversingIndex(idx);
-        setActionLog(`Visiting Node ${idx + 1}: Value = ${nodes[idx].value}, Address = ${nodes[idx].address}, Next = ${nodes[idx].nextAddress}`);
+      current += 1;
+      if (current < nodes.length) {
+        setTraversingIndex(current);
+        setActionLog(
+          `🔍 Traversal: Advanced to Node(${nodes[current].value}) via next pointer ${nodes[current].address}...`
+        );
       } else {
-        setTraversingIndex(null);
-        setActionLog('Reached NULL terminator. Traversal complete.');
         clearInterval(interval);
+        setTraversingIndex(null);
+        setActionLog(`✓ Traversal Complete: Reached NULL (End of Singly Linked List).`);
       }
-    }, 700);
+    }, 800);
+  };
+
+  // Search Node by value
+  const handleSearch = () => {
+    const target = parseInt(searchQuery, 10);
+    if (isNaN(target)) return;
+
+    let foundIdx = -1;
+    for (let i = 0; i < nodes.length; i++) {
+      if (nodes[i].value === target) {
+        foundIdx = i;
+        break;
+      }
+    }
+
+    if (foundIdx >= 0) {
+      setSearchFoundIndex(foundIdx);
+      setActionLog(`🎯 Found value ${target} at Node[${foundIdx}] with Address ${nodes[foundIdx].address}!`);
+      setTimeout(() => setSearchFoundIndex(null), 2500);
+    } else {
+      setActionLog(`❌ Value ${target} not found in linked list.`);
+    }
   };
 
   const handleReset = () => {
@@ -120,183 +204,183 @@ export function LinkedListVisualizer({
       { id: 'n4', value: 40, address: '0x1080', nextAddress: 'NULL', isTail: true }
     ]);
     setTraversingIndex(null);
-    setActionLog('Reset to default linked list state.');
+    setActionLog('Linked List reset to default state.');
   };
 
   return (
     <div className="w-full flex flex-col h-full bg-white select-none">
-      {/* Visualizer Header Controls */}
-      <div className="px-4 py-3 border-b border-border flex flex-wrap items-center justify-between gap-2 bg-surface">
+      {/* Top Toolbar */}
+      <div className="px-4 py-3 border-b border-border flex flex-wrap items-center justify-between gap-3 bg-surface">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted">Data Structure:</span>
-          <span className="text-xs font-bold text-primary px-2 py-0.5 rounded bg-surface-subtle border border-border">
-            Singly Linked List ({nodes.length} Nodes)
+          <span className="text-xs font-bold text-black flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5 text-red-600" />
+            <span>Singly Linked List Memory Pipeline</span>
+          </span>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white border border-border text-secondary">
+            {nodes.length} Nodes in Heap
           </span>
         </div>
 
+        {/* Action Controls for User Inputs */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <div className="flex items-center gap-1 border border-border rounded-md px-1.5 py-0.5 bg-white">
-            <span className="text-[11px] text-muted font-mono">val:</span>
+          <div className="flex items-center gap-1 border border-border rounded-lg px-2 py-1 bg-white shadow-xs">
+            <span className="text-[11px] text-muted font-mono font-bold">val:</span>
             <input
               type="number"
               value={newValueInput}
               onChange={(e) => setNewValueInput(e.target.value)}
-              className="w-12 text-xs font-mono text-primary bg-transparent focus:outline-none"
-              placeholder="val"
+              placeholder="50"
+              className="w-12 text-xs font-mono font-bold text-black bg-transparent focus:outline-hidden"
             />
           </div>
 
           <button
-            onClick={handleInsertHead}
-            title="Insert at Head: O(1)"
-            className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md bg-primary text-white hover:bg-primary-hover transition shadow-subtle"
+            onClick={() => handleInsertHead()}
+            className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition shadow-red"
+            title="Insert Node at Head (O(1))"
           >
-            <Plus className="w-3 h-3" /> Insert Head
+            <Plus className="w-3 h-3" />
+            <span>+ Head</span>
           </button>
 
           <button
-            onClick={handleInsertTail}
-            title="Insert at Tail: O(n)"
-            className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md bg-surface-subtle hover:bg-border text-primary border border-border transition"
+            onClick={() => handleInsertTail()}
+            className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-black text-white hover:bg-zinc-800 transition shadow-subtle"
+            title="Insert Node at Tail (O(n))"
           >
-            <Plus className="w-3 h-3" /> Insert Tail
+            <Plus className="w-3 h-3" />
+            <span>+ Tail</span>
           </button>
 
           <button
             onClick={handleDeleteHead}
-            title="Delete Head: O(1)"
-            className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md bg-surface-subtle hover:bg-rose-50 text-rose-600 border border-border transition"
+            disabled={nodes.length === 0}
+            className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-border bg-white text-black hover:bg-red-50 hover:text-red-600 transition shadow-subtle disabled:opacity-50"
+            title="Delete Head Node (O(1))"
           >
-            <Trash2 className="w-3 h-3" /> Delete Head
+            <Trash2 className="w-3 h-3" />
+            <span>- Head</span>
           </button>
 
           <button
             onClick={handleStartTraversal}
-            title="Traverse List"
-            className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md bg-surface-subtle hover:bg-border text-primary border border-border transition"
+            disabled={nodes.length === 0 || traversingIndex !== null}
+            className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-black bg-white text-black hover:bg-black hover:text-white transition shadow-subtle disabled:opacity-50"
+            title="Step-by-step traverse through nodes"
           >
-            <Play className="w-3 h-3" /> Traverse
+            <Play className="w-3 h-3 fill-current" />
+            <span>Traverse</span>
           </button>
 
           <button
             onClick={handleReset}
-            title="Reset"
-            className="p-1 text-muted hover:text-primary transition"
+            className="p-1.5 text-muted hover:text-black rounded-lg border border-border bg-white transition shadow-subtle"
+            title="Reset Linked List"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Main Canvas Area */}
-      <div className="flex-1 p-6 overflow-x-auto overflow-y-auto flex items-center justify-start min-h-[220px]">
+      {/* Main Interactive Linked List Visual Canvas */}
+      <div className="flex-1 p-6 flex flex-col justify-center min-h-[300px] overflow-x-auto bg-gradient-to-b from-white via-surface-subtle/30 to-surface relative">
         {nodes.length === 0 ? (
-          <div className="w-full flex flex-col items-center justify-center text-muted py-12">
-            <p className="text-sm font-mono">HEAD → NULL (Empty Linked List)</p>
-            <button
-              onClick={handleInsertHead}
-              className="mt-3 text-xs text-primary font-medium underline"
-            >
-              Add first node
-            </button>
+          <div className="text-center py-12 space-y-2">
+            <span className="text-sm font-mono text-muted">HEAD ➔ NULL (Empty List)</span>
+            <p className="text-xs text-secondary">Use "+ Head" or "+ Tail" to allocate dynamic node boxes in RAM.</p>
           </div>
         ) : (
-          <div className="flex items-center gap-3">
-            {/* HEAD Pointer */}
-            <div className="flex flex-col items-center mr-1">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-accent-blue bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+          <div className="flex items-center gap-3 min-w-max py-8 px-4">
+            {/* HEAD Pointer Label */}
+            <div className="flex flex-col items-center shrink-0">
+              <span className="text-xs font-black font-mono px-2 py-1 rounded-lg bg-black text-white shadow-subtle">
                 HEAD
               </span>
-              <div className="w-0.5 h-4 bg-accent-blue my-0.5"></div>
-              <ArrowRight className="w-4 h-4 text-accent-blue rotate-90 -mt-1" />
+              <div className="w-0.5 h-4 bg-black my-0.5"></div>
+              <ArrowRight className="w-4 h-4 text-black rotate-90" />
             </div>
 
-            {/* Nodes Sequence */}
+            {/* Render Nodes in Sequence */}
             {nodes.map((node, index) => {
-              const isCurrentTraversal = traversingIndex === index;
-              const isHead = node.isHead || index === 0;
+              const isTraversing = traversingIndex === index;
+              const isFound = searchFoundIndex === index;
 
               return (
                 <React.Fragment key={node.id}>
-                  {/* Single Node Card */}
+                  {/* Node Box */}
                   <div
-                    onClick={() => onNodeClick && onNodeClick(node)}
-                    className={`flex flex-col cursor-pointer transition-all duration-300 transform ${
-                      isCurrentTraversal
-                        ? 'scale-105 ring-2 ring-primary ring-offset-2'
-                        : 'hover:-translate-y-1'
+                    className={`relative flex items-stretch rounded-2xl border-2 shadow-card overflow-hidden transition-all duration-300 ${
+                      node.isNew
+                        ? 'animate-drop-in bg-red-50 border-red-600 shadow-red scale-105'
+                        : node.isDeleting
+                        ? 'animate-fly-out border-red-400 bg-red-100'
+                        : isFound
+                        ? 'bg-emerald-50 border-emerald-500 ring-4 ring-emerald-200 scale-110'
+                        : isTraversing
+                        ? 'bg-red-50 border-red-600 ring-4 ring-red-200 scale-105'
+                        : 'bg-white border-black hover:border-red-600'
                     }`}
                   >
-                    {/* Node Memory Address Badge */}
-                    <div className="text-[9px] font-mono text-muted text-center mb-1">
-                      {node.address || `0x${(0x1000 + index * 0x20).toString(16)}`}
-                    </div>
-
-                    {/* Node Structure Box: [ Data | Next Pointer ] */}
-                    <div
-                      className={`flex rounded-lg overflow-hidden border transition-shadow ${
-                        isCurrentTraversal
-                          ? 'border-primary bg-zinc-50 shadow-card'
-                          : isHead
-                          ? 'border-zinc-400 bg-white shadow-subtle'
-                          : 'border-border bg-white shadow-subtle'
-                      }`}
-                    >
-                      {/* Data compartment */}
-                      <div className="w-14 h-14 flex flex-col items-center justify-center border-r border-border px-2">
-                        <span className="text-[9px] font-mono text-muted uppercase">data</span>
-                        <span className="text-sm font-bold font-mono text-primary">{node.value}</span>
-                      </div>
-
-                      {/* Next Pointer compartment */}
-                      <div className="w-14 h-14 flex flex-col items-center justify-center px-1 bg-surface">
-                        <span className="text-[9px] font-mono text-muted uppercase">next</span>
-                        <div className="flex items-center justify-center mt-0.5">
-                          <div className="w-2.5 h-2.5 rounded-full bg-primary flex items-center justify-center">
-                            <div className="w-1 h-1 rounded-full bg-white"></div>
-                          </div>
-                        </div>
-                        <span className="text-[8px] font-mono text-muted mt-0.5 truncate max-w-[48px]">
-                          {node.nextAddress || (index === nodes.length - 1 ? 'NULL' : '0x...')}
+                    {/* Animated Traversal PTR Beacon */}
+                    {isTraversing && (
+                      <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex flex-col items-center z-10 animate-pulse">
+                        <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-red-600 text-white">
+                          PTR
                         </span>
+                        <div className="w-0.5 h-2 bg-red-600"></div>
                       </div>
+                    )}
+
+                    {/* Data Compartment */}
+                    <div className="p-3 min-w-[70px] text-center border-r border-border bg-white flex flex-col justify-center">
+                      <span className="text-[9px] font-mono uppercase text-muted block mb-0.5">
+                        DATA
+                      </span>
+                      <span className="text-base font-black font-mono text-black">
+                        {node.value}
+                      </span>
                     </div>
 
-                    {/* Role indicator */}
-                    <div className="text-center mt-1">
-                      {isHead && (
-                        <span className="text-[9px] font-medium text-accent-blue">First Node</span>
-                      )}
-                      {node.isTail && (
-                        <span className="text-[9px] font-medium text-muted">Last Node</span>
-                      )}
+                    {/* Next Pointer Compartment */}
+                    <div className="p-3 min-w-[75px] text-center bg-surface flex flex-col justify-center">
+                      <span className="text-[9px] font-mono uppercase text-muted block mb-0.5">
+                        NEXT
+                      </span>
+                      <span className="text-[11px] font-mono font-bold text-red-600">
+                        {node.nextAddress}
+                      </span>
+                    </div>
+
+                    {/* Heap Memory Address Badge */}
+                    <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-mono text-muted whitespace-nowrap">
+                      {node.address}
                     </div>
                   </div>
 
-                  {/* Arrow Link to Next Node or NULL */}
-                  <div className="flex items-center text-muted px-1">
-                    <div className="w-6 h-0.5 bg-primary"></div>
-                    <ArrowRight className="w-4 h-4 text-primary -ml-1.5" />
+                  {/* Arrow to Next Node */}
+                  <div className="flex items-center px-1 text-black shrink-0">
+                    <div className="w-5 h-0.5 bg-black"></div>
+                    <ArrowRight className="w-4 h-4 text-black -ml-1" />
                   </div>
                 </React.Fragment>
               );
             })}
 
-            {/* NULL Terminator Box */}
-            <div className="flex flex-col items-center justify-center">
-              <div className="w-12 h-10 rounded border border-dashed border-border flex items-center justify-center bg-surface-subtle">
-                <span className="text-xs font-mono font-bold text-muted">NULL</span>
-              </div>
-              <span className="text-[9px] font-mono text-muted mt-1">End of List</span>
+            {/* NULL Terminator */}
+            <div className="flex flex-col items-center shrink-0">
+              <span className="text-xs font-mono font-black px-2.5 py-1.5 rounded-xl bg-zinc-200 text-zinc-700 border border-zinc-300">
+                NULL
+              </span>
+              <span className="text-[9px] font-mono text-muted mt-1">0x0</span>
             </div>
           </div>
         )}
       </div>
 
-      {/* Real-time State Log */}
+      {/* Real-Time Action Log Strip */}
       <div className="px-4 py-2.5 border-t border-border bg-surface flex items-center gap-2">
-        <Info className="w-3.5 h-3.5 text-muted shrink-0" />
-        <p className="text-xs font-mono text-secondary truncate">
+        <Info className="w-3.5 h-3.5 text-red-600 shrink-0" />
+        <p className="text-xs font-mono text-black font-medium truncate">
           {actionLog}
         </p>
       </div>

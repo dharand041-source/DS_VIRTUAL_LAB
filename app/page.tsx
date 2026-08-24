@@ -28,7 +28,7 @@ export default function HomePage() {
   const [mounted, setMounted] = useState(false);
   const submissions = getStoredSubmissions();
 
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
   }, []);
 
@@ -47,15 +47,15 @@ export default function HomePage() {
       <section className="border-b border-border bg-gradient-to-b from-surface-subtle/50 to-white py-14 sm:py-20 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto text-center flex flex-col items-center">
           {/* Academic Pill */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-white text-xs font-medium text-secondary mb-6 shadow-subtle">
-            <span className="w-2 h-2 rounded-full bg-accent-emerald animate-pulse"></span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-200 bg-red-50 text-xs font-medium text-red-700 mb-6 shadow-subtle">
+            <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
             <span>Anna University Regulation Aligned • Department of AI&DS</span>
           </div>
 
           {/* Master Headline */}
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-primary max-w-3xl leading-[1.1] mb-6">
+          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-black max-w-3xl leading-[1.1] mb-6">
             Understand Data Structures. <br />
-            <span className="text-muted font-bold">Don't Just Run Them.</span>
+            <span className="text-red-600 font-black">Don't Just Run Them.</span>
           </h1>
 
           {/* Subtitle */}
@@ -67,24 +67,24 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
             <Link
               href="/compiler"
-              className="px-6 py-3 rounded-lg border border-border bg-white text-primary text-sm font-semibold hover:bg-surface transition shadow-subtle flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition shadow-red flex items-center gap-2 border border-red-600 group"
             >
-              <Terminal className="w-4 h-4 text-primary" />
+              <Terminal className="w-4 h-4 text-white" />
               <span>C Online Compiler</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </Link>
 
             <Link
               href="/experiments"
-              className="px-6 py-3 rounded-lg border border-border bg-white text-primary text-sm font-semibold hover:bg-surface transition shadow-subtle flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-black text-white text-sm font-bold hover:bg-zinc-800 transition shadow-subtle flex items-center gap-2 border border-black"
             >
-              <Layers className="w-4 h-4 text-primary" />
+              <Layers className="w-4 h-4 text-white" />
               <span>Explore 10 Experiments</span>
             </Link>
 
             <Link
               href="/dashboard"
-              className="px-6 py-3 rounded-lg border border-border bg-white text-secondary hover:text-primary text-sm font-semibold hover:bg-surface transition shadow-subtle flex items-center gap-2"
+              className="px-6 py-3 rounded-xl border border-border bg-white text-black hover:border-red-300 hover:text-red-600 text-sm font-semibold hover:bg-red-50/50 transition shadow-subtle flex items-center gap-2"
             >
               <LayoutDashboard className="w-4 h-4" />
               <span>Student Dashboard</span>
@@ -97,7 +97,7 @@ export default function HomePage() {
             <div className="px-4 py-2.5 bg-surface border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-300"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
                   <div className="w-2.5 h-2.5 rounded-full bg-zinc-300"></div>
                   <div className="w-2.5 h-2.5 rounded-full bg-zinc-300"></div>
                 </div>
@@ -105,7 +105,7 @@ export default function HomePage() {
                   interactive_learning_demo.c
                 </span>
               </div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-accent-emerald font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded border border-red-200">
                 Live RAM State Inspection
               </span>
             </div>
@@ -113,9 +113,9 @@ export default function HomePage() {
             {/* Split screen content */}
             <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border font-mono text-xs">
               {/* Left side: Code */}
-              <div className="p-4 bg-white space-y-1 text-primary">
+              <div className="p-4 bg-white space-y-1 text-black">
                 <div className="text-muted">// Step 1: Allocate new node in heap memory</div>
-                <div className="bg-surface -mx-4 px-4 py-0.5 border-y border-border font-bold">
+                <div className="bg-red-50 -mx-4 px-4 py-0.5 border-y border-red-200 font-bold text-red-950">
                   struct Node* temp = (struct Node*)malloc(sizeof(struct Node));
                 </div>
                 <div>temp-&gt;data = 42;</div>
@@ -126,18 +126,18 @@ export default function HomePage() {
               {/* Right side: Visual feedback */}
               <div className="p-4 bg-surface/40 flex flex-col justify-center space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2.5 bg-white rounded-lg border border-border shadow-subtle text-center min-w-[70px]">
+                  <div className="p-2.5 bg-white rounded-lg border border-red-200 shadow-subtle text-center min-w-[70px]">
                     <span className="text-[9px] text-muted uppercase block">Data</span>
-                    <span className="font-bold text-accent-blue text-sm">42</span>
+                    <span className="text-sm font-bold text-red-600">42</span>
                   </div>
-                  <span className="text-secondary font-bold">&rarr;</span>
+                  <span className="text-muted">&rarr;</span>
                   <div className="p-2.5 bg-white rounded-lg border border-border shadow-subtle text-center min-w-[70px]">
                     <span className="text-[9px] text-muted uppercase block">Next</span>
-                    <span className="font-bold text-primary text-xs">0x4010</span>
+                    <span className="text-xs font-mono text-black">0x4010</span>
                   </div>
                 </div>
                 <p className="text-[11px] text-secondary font-sans leading-relaxed">
-                  ✨ <strong>Heap Allocation Active:</strong> Memory of 16 bytes allocated at <code className="text-primary font-bold">0x4020</code> and linked into the list.
+                  ✨ <strong>Heap Allocation Active:</strong> Memory of 16 bytes allocated at <code className="text-red-600 font-bold">0x4020</code> and linked into the list.
                 </p>
               </div>
             </div>
@@ -148,25 +148,25 @@ export default function HomePage() {
       {/* Feature Pillars */}
       <section className="py-12 px-4 sm:px-6 max-w-6xl mx-auto w-full">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="academic-card p-5">
+          <div className="academic-card p-5 hover:border-red-300 transition-colors">
             <span className="text-2xl mb-3 block">⚡</span>
-            <h3 className="text-sm font-bold text-primary mb-1">C Sandbox & Line-by-Line AI</h3>
+            <h3 className="text-sm font-bold text-black mb-1">C Sandbox & Line-by-Line AI</h3>
             <p className="text-xs text-secondary leading-relaxed">
               Every line of code is mapped to its syntactic purpose, RAM memory changes, and algorithmic complexity.
             </p>
           </div>
 
-          <div className="academic-card p-5">
+          <div className="academic-card p-5 hover:border-red-300 transition-colors">
             <span className="text-2xl mb-3 block">🎓</span>
-            <h3 className="text-sm font-bold text-primary mb-1">Our College Evaluation</h3>
+            <h3 className="text-sm font-bold text-black mb-1">Our College Evaluation</h3>
             <p className="text-xs text-secondary leading-relaxed">
               Full Anna University curriculum access, 75-mark evaluation scheme, typing viva tests, and internal college leaderboard.
             </p>
           </div>
 
-          <div className="academic-card p-5">
+          <div className="academic-card p-5 hover:border-red-300 transition-colors">
             <span className="text-2xl mb-3 block">🌐</span>
-            <h3 className="text-sm font-bold text-primary mb-1">Guest & Other Colleges</h3>
+            <h3 className="text-sm font-bold text-black mb-1">Guest & Other Colleges</h3>
             <p className="text-xs text-secondary leading-relaxed">
               Open public demonstrations, interactive C code visualizer, and global learning leaderboard with complete privacy protection.
             </p>
@@ -175,18 +175,18 @@ export default function HomePage() {
       </section>
 
       {/* =========================================================================
-          REPLACED SECTION: STUDENT DASHBOARD OVERVIEW (Replaced Old Experiments List)
+          STUDENT DASHBOARD OVERVIEW
          ========================================================================= */}
       <section className="py-12 px-4 sm:px-6 bg-surface border-t border-border w-full">
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Section Title Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-border bg-white text-[11px] font-mono font-bold text-primary mb-1.5 shadow-subtle">
-                <LayoutDashboard className="w-3.5 h-3.5 text-primary" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-red-200 bg-red-50 text-[11px] font-mono font-bold text-red-700 mb-1.5 shadow-subtle">
+                <LayoutDashboard className="w-3.5 h-3.5 text-red-600" />
                 <span>STUDENT LEARNING DASHBOARD</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-primary tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight">
                 Welcome back, {user.name}
               </h2>
               <p className="text-xs text-secondary">
@@ -197,7 +197,7 @@ export default function HomePage() {
             <div className="flex items-center gap-2">
               <Link
                 href="/dashboard"
-                className="px-3.5 py-2 rounded-lg border border-border bg-white text-xs font-semibold text-primary hover:bg-surface transition shadow-subtle flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-lg border border-border bg-white text-xs font-semibold text-black hover:border-red-300 hover:text-red-600 transition shadow-subtle flex items-center gap-1.5"
               >
                 <span>Full Dashboard</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -214,11 +214,11 @@ export default function HomePage() {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-muted">
                     Laboratory Curriculum Progress
                   </h3>
-                  <p className="text-sm font-bold text-primary mt-0.5">
+                  <p className="text-sm font-bold text-black mt-0.5">
                     Course N21UIT307 • Anna University Regulation 2021
                   </p>
                 </div>
-                <span className="text-sm font-bold font-mono text-primary">
+                <span className="text-sm font-bold font-mono text-red-600">
                   {progressPercent}% Completed
                 </span>
               </div>
@@ -226,21 +226,21 @@ export default function HomePage() {
               {/* Progress Bar */}
               <div className="w-full bg-surface h-3 rounded-full overflow-hidden border border-border p-0.5">
                 <div
-                  className="bg-primary h-full rounded-full transition-all duration-500"
+                  className="bg-red-600 h-full rounded-full transition-all duration-500"
                   style={{ width: `${progressPercent}%` }}
                 ></div>
               </div>
 
               <div className="flex flex-wrap items-center justify-between text-xs text-secondary pt-2 border-t border-border gap-2">
                 <span>
-                  Completed: <strong className="text-primary font-mono">{completedCount} / {totalExps}</strong> Experiments
+                  Completed: <strong className="text-black font-mono">{completedCount} / {totalExps}</strong> Experiments
                 </span>
                 <span>
-                  Total Earned: <strong className="text-accent-amber font-mono font-bold">{user.xp} XP</strong>
+                  Total Earned: <strong className="text-red-600 font-mono font-bold">{user.xp} XP</strong>
                 </span>
                 <Link
                   href="/experiments"
-                  className="text-primary hover:underline font-semibold flex items-center gap-1"
+                  className="text-black hover:text-red-600 font-bold flex items-center gap-1 transition-colors"
                 >
                   View all 10 experiments &rarr;
                 </Link>
@@ -250,11 +250,11 @@ export default function HomePage() {
             {/* Next Recommended Experiment Card */}
             <div className="academic-card p-5 bg-white border border-border rounded-xl shadow-subtle flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-accent-amber mb-2">
-                  <Lightbulb className="w-4 h-4" />
+                <div className="flex items-center gap-1.5 text-xs font-bold text-red-600 mb-2">
+                  <Lightbulb className="w-4 h-4 text-red-600" />
                   <span>Next Recommended Activity</span>
                 </div>
-                <h4 className="text-sm font-bold text-primary line-clamp-1">
+                <h4 className="text-sm font-bold text-black line-clamp-1">
                   EXP {nextExp.expNumber < 10 ? `0${nextExp.expNumber}` : nextExp.expNumber}: {nextExp.shortTitle}
                 </h4>
                 <p className="text-[11px] text-secondary mt-1 line-clamp-2 leading-relaxed">
@@ -265,9 +265,9 @@ export default function HomePage() {
               <div className="pt-3 border-t border-border mt-3">
                 <Link
                   href={`/experiments/${nextExp.id}`}
-                  className="w-full py-2 px-3 rounded-lg border border-border bg-white hover:bg-surface text-primary text-xs font-bold transition shadow-subtle flex items-center justify-center gap-1.5"
+                  className="w-full py-2 px-3 rounded-lg bg-black hover:bg-red-600 text-white text-xs font-bold transition shadow-subtle flex items-center justify-center gap-1.5"
                 >
-                  <Play className="w-3.5 h-3.5 fill-current text-primary" />
+                  <Play className="w-3.5 h-3.5 fill-current text-white" />
                   <span>Continue Experiment</span>
                 </Link>
               </div>
@@ -276,34 +276,33 @@ export default function HomePage() {
 
           {/* Badges & Recent Achievements Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Gamification Stats */}
             <div className="academic-card p-4 bg-white border border-border rounded-xl shadow-subtle flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-sm border border-red-200">
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] font-mono text-muted uppercase block">Total Laboratory XP</span>
-                <span className="text-base font-bold font-mono text-primary">{user.xp} XP</span>
+                <span className="text-[10px] font-mono text-muted uppercase block">Total Experience</span>
+                <span className="text-sm font-black font-mono text-black">{user.xp} XP</span>
               </div>
             </div>
 
             <div className="academic-card p-4 bg-white border border-border rounded-xl shadow-subtle flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center shrink-0">
-                <Flame className="w-5 h-5 fill-current" />
+              <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-sm border border-red-200">
+                <Flame className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] font-mono text-muted uppercase block">Active Learning Streak</span>
-                <span className="text-base font-bold font-mono text-primary">{user.streakDays} Days Active</span>
+                <span className="text-[10px] font-mono text-muted uppercase block">Active Streak</span>
+                <span className="text-sm font-black font-mono text-black">{user.streakDays || 5} Days</span>
               </div>
             </div>
 
             <div className="academic-card p-4 bg-white border border-border rounded-xl shadow-subtle flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-accent-emerald flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-sm border border-red-200">
                 <Award className="w-5 h-5" />
               </div>
               <div>
                 <span className="text-[10px] font-mono text-muted uppercase block">Earned Badges</span>
-                <span className="text-base font-bold font-mono text-primary">{user.badges?.length || 3} Badges</span>
+                <span className="text-sm font-black font-mono text-black">{user.badges?.length || 4} Badges</span>
               </div>
             </div>
           </div>

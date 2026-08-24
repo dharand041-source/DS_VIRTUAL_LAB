@@ -58,7 +58,7 @@
   border-radius: 8px;
 }
 
-/* Subtle keyframe animations */
+/* Custom keyframe animations for DS visualizer */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -70,8 +70,99 @@
   }
 }
 
+@keyframes dropInFromTop {
+  0% {
+    opacity: 0;
+    transform: translateY(-80px) scale(0.85);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(6px) scale(1.04);
+  }
+  85% {
+    transform: translateY(-2px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes flyUpAndOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    opacity: 0.9;
+    transform: translateY(-25px) scale(1.08);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-90px) scale(0.7);
+  }
+}
+
+@keyframes slideInFromRight {
+  0% {
+    opacity: 0;
+    transform: translateX(80px) scale(0.9);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-4px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes slideOutToLeft {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  40% {
+    transform: translateX(-15px) scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-90px) scale(0.7);
+  }
+}
+
+@keyframes pulseGlowRed {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+  }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-drop-in {
+  animation: dropInFromTop 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-fly-out {
+  animation: flyUpAndOut 0.45s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-slide-out-left {
+  animation: slideOutToLeft 0.4s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlowRed 1.8s infinite;
 }
 
 /* Glassmorphism/subtle card borders */
