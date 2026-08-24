@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, BookOpen, Lock } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -14,22 +14,22 @@ export function Footer() {
             </span>
           </div>
           <p className="text-xs text-muted mt-1">
-            Department of Computer Science & Engineering • Anna University Laboratory Regulation Aligned
+            Department of Artificial Intelligence & Data Science (AI&DS) • Anna University Laboratory Regulation Aligned
           </p>
         </div>
 
-        <div className="flex items-center gap-6 text-xs text-secondary">
-          <Link href="/syllabus" className="hover:text-primary transition">
-            Syllabus
+        <div className="flex items-center gap-6 text-xs text-secondary font-medium">
+          <Link href="/experiments" className="hover:text-primary transition">
+            Experiments
+          </Link>
+          <Link href="/compiler" className="hover:text-primary transition">
+            Online Compiler
           </Link>
           <Link href="/leaderboard" className="hover:text-primary transition">
-            Weekly Leaderboard
+            Leaderboard
           </Link>
           <Link href="/faculty" className="hover:text-primary transition">
-            Faculty Evaluation
-          </Link>
-          <Link href="/about" className="hover:text-primary transition">
-            Academic Architecture
+            Faculty
           </Link>
         </div>
 

@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { SYLLABUS_EXPERIMENTS } from '@/lib/syllabus-data';
 import { useAuth } from '@/lib/auth-context';
-import { BookOpen, CheckCircle2, Play, ArrowRight, Layers, FileText } from 'lucide-react';
+import { BookOpen, CheckCircle2, Play, ArrowRight, Layers, FileText, ArrowLeft } from 'lucide-react';
 
 export default function SyllabusPage() {
   const { user } = useAuth();

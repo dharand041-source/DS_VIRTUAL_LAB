@@ -1,18 +1,55 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, BookOpen, Play } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 import { SYLLABUS_EXPERIMENTS } from '@/lib/syllabus-data';
+import { getStoredSubmissions } from '@/lib/storage';
+import {
+  ArrowRight,
+  BookOpen,
+  Play,
+  Terminal,
+  Sparkles,
+  Flame,
+  LayoutDashboard,
+  Award,
+  CheckCircle2,
+  Lightbulb,
+  Clock,
+  Layers,
+  ChevronRight,
+  Zap,
+  MessageSquare
+} from 'lucide-react';
 
 export default function HomePage() {
+  const { user } = useAuth();
+  const [mounted, setMounted] = useState(false);
+  const submissions = getStoredSubmissions();
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const totalExps = SYLLABUS_EXPERIMENTS.length;
+  const completedCount = mounted ? user.completedExperiments?.length || 0 : 0;
+  const progressPercent = Math.round((completedCount / totalExps) * 100);
+
+  // Next recommended experiment
+  const nextExp =
+    SYLLABUS_EXPERIMENTS.find((e) => !user.completedExperiments?.includes(e.id)) ||
+    SYLLABUS_EXPERIMENTS[0];
+
   return (
-    <div className="flex-1 flex flex-col bg-white">
+    <div className="flex-1 flex flex-col bg-white select-none">
       {/* Hero Section */}
-      <section className="border-b border-border bg-gradient-to-b from-surface-subtle/50 to-white py-16 sm:py-24 px-4 sm:px-6">
+      <section className="border-b border-border bg-gradient-to-b from-surface-subtle/50 to-white py-14 sm:py-20 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto text-center flex flex-col items-center">
           {/* Academic Pill */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-white text-xs font-medium text-secondary mb-6 shadow-subtle">
             <span className="w-2 h-2 rounded-full bg-accent-emerald animate-pulse"></span>
-            <span>Anna University Regulation Aligned • Department of CSE</span>
+            <span>Anna University Regulation Aligned • Department of AI&DS</span>
           </div>
 
           {/* Master Headline */}
@@ -29,19 +66,28 @@ export default function HomePage() {
           {/* Primary Action Buttons */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
             <Link
-              href="/lab/exp-01-singly-linked-list"
-              className="px-6 py-3 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition shadow-subtle flex items-center gap-2"
+              href="/compiler"
+              className="px-6 py-3 rounded-lg border border-border bg-white text-primary text-sm font-semibold hover:bg-surface transition shadow-subtle flex items-center gap-2"
             >
-              <span>Launch Flagship Lab (Linked List)</span>
+              <Terminal className="w-4 h-4 text-primary" />
+              <span>C Online Compiler</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
             <Link
-              href="/syllabus"
+              href="/experiments"
               className="px-6 py-3 rounded-lg border border-border bg-white text-primary text-sm font-semibold hover:bg-surface transition shadow-subtle flex items-center gap-2"
             >
-              <BookOpen className="w-4 h-4" />
-              <span>Explore Full Syllabus</span>
+              <Layers className="w-4 h-4 text-primary" />
+              <span>Explore 10 Experiments</span>
+            </Link>
+
+            <Link
+              href="/dashboard"
+              className="px-6 py-3 rounded-lg border border-border bg-white text-secondary hover:text-primary text-sm font-semibold hover:bg-surface transition shadow-subtle flex items-center gap-2"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              <span>Student Dashboard</span>
             </Link>
           </div>
 
@@ -50,60 +96,48 @@ export default function HomePage() {
             {/* Window title bar */}
             <div className="px-4 py-2.5 bg-surface border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-zinc-300"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-zinc-300"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-zinc-300"></div>
-                <span className="text-xs font-mono font-medium text-muted ml-2">
-                  interactive-preview.c
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-300"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-300"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-300"></div>
+                </div>
+                <span className="text-[11px] font-mono font-medium text-muted ml-2">
+                  interactive_learning_demo.c
                 </span>
               </div>
-              <span className="text-[11px] font-mono text-accent-blue bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                AST Memory State Active
+              <span className="text-[10px] font-mono uppercase tracking-wider text-accent-emerald font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Live RAM State Inspection
               </span>
             </div>
 
-            {/* Split Screen Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border">
-              {/* Col 1: C Code Snippet with line highlight */}
-              <div className="p-4 bg-surface-subtle font-mono text-xs text-primary space-y-1">
-                <div className="text-muted text-[10px] uppercase font-bold tracking-wider mb-2 font-sans">
-                  1. C Code Line
+            {/* Split screen content */}
+            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border font-mono text-xs">
+              {/* Left side: Code */}
+              <div className="p-4 bg-white space-y-1 text-primary">
+                <div className="text-muted">// Step 1: Allocate new node in heap memory</div>
+                <div className="bg-surface -mx-4 px-4 py-0.5 border-y border-border font-bold">
+                  struct Node* temp = (struct Node*)malloc(sizeof(struct Node));
                 </div>
-                <div className="text-muted">struct Node* head = NULL;</div>
-                <div className="bg-primary text-white p-1 rounded font-bold">
-                  int x = 10;
-                </div>
-                <div className="text-muted">insertAtBeginning(x);</div>
-                <div className="text-muted">display();</div>
+                <div>temp-&gt;data = 42;</div>
+                <div>temp-&gt;next = head;</div>
+                <div>head = temp;</div>
               </div>
 
-              {/* Col 2: Live Memory Visualizer */}
-              <div className="p-4 bg-white flex flex-col justify-center">
-                <div className="text-muted text-[10px] uppercase font-bold tracking-wider mb-3 font-sans">
-                  2. Visual State in Heap
-                </div>
+              {/* Right side: Visual feedback */}
+              <div className="p-4 bg-surface/40 flex flex-col justify-center space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-accent-blue uppercase">HEAD</span>
-                  <div className="flex rounded border border-primary overflow-hidden shadow-subtle">
-                    <div className="px-2 py-1 bg-white border-r border-border font-mono text-xs font-bold">
-                      10
-                    </div>
-                    <div className="px-2 py-1 bg-surface font-mono text-[10px] text-muted">
-                      NULL
-                    </div>
+                  <div className="p-2.5 bg-white rounded-lg border border-border shadow-subtle text-center min-w-[70px]">
+                    <span className="text-[9px] text-muted uppercase block">Data</span>
+                    <span className="font-bold text-accent-blue text-sm">42</span>
+                  </div>
+                  <span className="text-secondary font-bold">&rarr;</span>
+                  <div className="p-2.5 bg-white rounded-lg border border-border shadow-subtle text-center min-w-[70px]">
+                    <span className="text-[9px] text-muted uppercase block">Next</span>
+                    <span className="font-bold text-primary text-xs">0x4010</span>
                   </div>
                 </div>
-              </div>
-
-              {/* Col 3: AI Explanation */}
-              <div className="p-4 bg-surface font-sans text-xs">
-                <div className="text-muted text-[10px] uppercase font-bold tracking-wider mb-2 font-sans flex items-center gap-1">
-                  <span className="text-xs">✨</span>
-                  <span>3. AI Explanation</span>
-                </div>
-                <p className="text-secondary leading-relaxed">
-                  <strong className="text-primary font-semibold">int</strong> tells the program that <code className="font-mono text-primary font-bold">x</code> stores an integer value. <br />
-                  <code className="font-mono text-primary font-bold">x = 10</code> gives variable x the value 10 in stack memory.
+                <p className="text-[11px] text-secondary font-sans leading-relaxed">
+                  ✨ <strong>Heap Allocation Active:</strong> Memory of 16 bytes allocated at <code className="text-primary font-bold">0x4020</code> and linked into the list.
                 </p>
               </div>
             </div>
@@ -111,33 +145,20 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Target Audience Section */}
-      <section className="py-16 px-4 sm:px-6 max-w-6xl mx-auto w-full">
-        <div className="text-center mb-12">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-muted mb-2">Designed For All Learners</h2>
-          <p className="text-2xl font-bold text-primary">Removing the Fear of C Programming & Data Structures</p>
-        </div>
+      {/* Feature Pillars */}
+      <section className="py-12 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="academic-card p-5">
+            <span className="text-2xl mb-3 block">⚡</span>
+            <h3 className="text-sm font-bold text-primary mb-1">C Sandbox & Line-by-Line AI</h3>
+            <p className="text-xs text-secondary leading-relaxed">
+              Every line of code is mapped to its syntactic purpose, RAM memory changes, and algorithmic complexity.
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="academic-card p-5">
             <span className="text-2xl mb-3 block">🎓</span>
-            <h3 className="text-sm font-bold text-primary mb-1">11th & 12th Students</h3>
-            <p className="text-xs text-secondary leading-relaxed">
-              Gentle introduction to variables, loops, memory addresses, and elementary pointers with visual step-by-step guidance.
-            </p>
-          </div>
-
-          <div className="academic-card p-5">
-            <span className="text-2xl mb-3 block">💻</span>
-            <h3 className="text-sm font-bold text-primary mb-1">1st-Year Undergrads</h3>
-            <p className="text-xs text-secondary leading-relaxed">
-              Master dynamic memory allocation (malloc/free), self-referential structures, and pointer manipulation without confusion.
-            </p>
-          </div>
-
-          <div className="academic-card p-5 border-zinc-400">
-            <span className="text-2xl mb-3 block">🏛️</span>
-            <h3 className="text-sm font-bold text-primary mb-1">Our College Students</h3>
+            <h3 className="text-sm font-bold text-primary mb-1">Our College Evaluation</h3>
             <p className="text-xs text-secondary leading-relaxed">
               Full Anna University curriculum access, 75-mark evaluation scheme, typing viva tests, and internal college leaderboard.
             </p>
@@ -153,87 +174,139 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Complete Academic Learning Flow (Source Architecture) */}
-      <section className="py-16 px-4 sm:px-6 bg-surface border-y border-border">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted mb-2">The Academic Learning Loop</h2>
-            <p className="text-2xl font-bold text-primary">From Theory to Interactive Viva & Evaluation</p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-            <div className="bg-white p-4 rounded-lg border border-border">
-              <span className="text-xs font-mono font-bold text-muted block mb-1">PHASE 01</span>
-              <h4 className="text-sm font-bold text-primary mb-1">Write C Code</h4>
-              <p className="text-[11px] text-secondary">Monaco C editor with real-time AST line-by-line inspection.</p>
+      {/* =========================================================================
+          REPLACED SECTION: STUDENT DASHBOARD OVERVIEW (Replaced Old Experiments List)
+         ========================================================================= */}
+      <section className="py-12 px-4 sm:px-6 bg-surface border-t border-border w-full">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Section Title Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-border bg-white text-[11px] font-mono font-bold text-primary mb-1.5 shadow-subtle">
+                <LayoutDashboard className="w-3.5 h-3.5 text-primary" />
+                <span>STUDENT LEARNING DASHBOARD</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-primary tracking-tight">
+                Welcome back, {user.name}
+              </h2>
+              <p className="text-xs text-secondary">
+                {user.collegeName} &bull; {user.departmentName} ({user.year || 'II Year / III Sem'})
+              </p>
             </div>
 
-            <div className="bg-white p-4 rounded-lg border border-border">
-              <span className="text-xs font-mono font-bold text-muted block mb-1">PHASE 02</span>
-              <h4 className="text-sm font-bold text-primary mb-1">Live Visualize</h4>
-              <p className="text-[11px] text-secondary">Dynamic linked nodes, pointers, and stack memory frames.</p>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg border border-border">
-              <span className="text-xs font-mono font-bold text-muted block mb-1">PHASE 03</span>
-              <h4 className="text-sm font-bold text-primary mb-1">10s Typing Viva</h4>
-              <p className="text-[11px] text-secondary">Rapid typing responses with anti-paste security.</p>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg border border-border">
-              <span className="text-xs font-mono font-bold text-muted block mb-1">PHASE 04</span>
-              <h4 className="text-sm font-bold text-primary mb-1">Faculty Evaluation</h4>
-              <p className="text-[11px] text-secondary">Anna University 75-mark scheme and personalized feedback.</p>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/dashboard"
+                className="px-3.5 py-2 rounded-lg border border-border bg-white text-xs font-semibold text-primary hover:bg-surface transition shadow-subtle flex items-center gap-1.5"
+              >
+                <span>Full Dashboard</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Featured Syllabus Experiments */}
-      <section className="py-16 px-4 sm:px-6 max-w-6xl mx-auto w-full">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted mb-1">Curriculum Experiments</h2>
-            <p className="text-xl font-bold text-primary">Data Structures Laboratory (C)</p>
-          </div>
-          <Link
-            href="/syllabus"
-            className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
-          >
-            View all experiments <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {SYLLABUS_EXPERIMENTS.map((exp) => (
-            <div key={exp.id} className="academic-card p-6 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-mono text-muted">EXP {exp.expNumber.toString().padStart(2, '0')}</span>
-                  <span className="academic-badge">{exp.category}</span>
+          {/* Quick Metrics & Progress Tracker */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Progress Meter Card */}
+            <div className="academic-card p-5 bg-white border border-border rounded-xl shadow-subtle md:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted">
+                    Laboratory Curriculum Progress
+                  </h3>
+                  <p className="text-sm font-bold text-primary mt-0.5">
+                    Course N21UIT307 • Anna University Regulation 2021
+                  </p>
                 </div>
-                <h3 className="text-base font-bold text-primary mb-2">{exp.title}</h3>
-                <p className="text-xs text-secondary leading-relaxed mb-4">{exp.aim}</p>
+                <span className="text-sm font-bold font-mono text-primary">
+                  {progressPercent}% Completed
+                </span>
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-border mt-2">
-                <div className="flex items-center gap-2">
-                  {exp.coMapping.slice(0, 1).map((co, i) => (
-                    <span key={i} className="text-[10px] font-mono text-muted bg-surface px-1.5 py-0.5 rounded border border-border">
-                      {co.split(' - ')[0]}
-                    </span>
-                  ))}
-                </div>
+              {/* Progress Bar */}
+              <div className="w-full bg-surface h-3 rounded-full overflow-hidden border border-border p-0.5">
+                <div
+                  className="bg-primary h-full rounded-full transition-all duration-500"
+                  style={{ width: `${progressPercent}%` }}
+                ></div>
+              </div>
 
+              <div className="flex flex-wrap items-center justify-between text-xs text-secondary pt-2 border-t border-border gap-2">
+                <span>
+                  Completed: <strong className="text-primary font-mono">{completedCount} / {totalExps}</strong> Experiments
+                </span>
+                <span>
+                  Total Earned: <strong className="text-accent-amber font-mono font-bold">{user.xp} XP</strong>
+                </span>
                 <Link
-                  href={`/lab/${exp.id}`}
-                  className="px-3.5 py-1.5 rounded-md bg-primary text-white text-xs font-semibold hover:bg-primary-hover transition flex items-center gap-1 shadow-subtle"
+                  href="/experiments"
+                  className="text-primary hover:underline font-semibold flex items-center gap-1"
                 >
-                  <Play className="w-3 h-3 fill-current" /> Open Lab
+                  View all 10 experiments &rarr;
                 </Link>
               </div>
             </div>
-          ))}
+
+            {/* Next Recommended Experiment Card */}
+            <div className="academic-card p-5 bg-white border border-border rounded-xl shadow-subtle flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-accent-amber mb-2">
+                  <Lightbulb className="w-4 h-4" />
+                  <span>Next Recommended Activity</span>
+                </div>
+                <h4 className="text-sm font-bold text-primary line-clamp-1">
+                  EXP {nextExp.expNumber < 10 ? `0${nextExp.expNumber}` : nextExp.expNumber}: {nextExp.shortTitle}
+                </h4>
+                <p className="text-[11px] text-secondary mt-1 line-clamp-2 leading-relaxed">
+                  {nextExp.aim}
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-border mt-3">
+                <Link
+                  href={`/experiments/${nextExp.id}`}
+                  className="w-full py-2 px-3 rounded-lg border border-border bg-white hover:bg-surface text-primary text-xs font-bold transition shadow-subtle flex items-center justify-center gap-1.5"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current text-primary" />
+                  <span>Continue Experiment</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Badges & Recent Achievements Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Gamification Stats */}
+            <div className="academic-card p-4 bg-white border border-border rounded-xl shadow-subtle flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] font-mono text-muted uppercase block">Total Laboratory XP</span>
+                <span className="text-base font-bold font-mono text-primary">{user.xp} XP</span>
+              </div>
+            </div>
+
+            <div className="academic-card p-4 bg-white border border-border rounded-xl shadow-subtle flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center shrink-0">
+                <Flame className="w-5 h-5 fill-current" />
+              </div>
+              <div>
+                <span className="text-[10px] font-mono text-muted uppercase block">Active Learning Streak</span>
+                <span className="text-base font-bold font-mono text-primary">{user.streakDays} Days Active</span>
+              </div>
+            </div>
+
+            <div className="academic-card p-4 bg-white border border-border rounded-xl shadow-subtle flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-accent-emerald flex items-center justify-center shrink-0">
+                <Award className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] font-mono text-muted uppercase block">Earned Badges</span>
+                <span className="text-base font-bold font-mono text-primary">{user.badges?.length || 3} Badges</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </div>

@@ -16,7 +16,8 @@ import {
   Play,
   Lightbulb,
   Clock,
-  FileCheck
+  FileCheck,
+  ArrowLeft
 } from 'lucide-react';
 
 export default function DashboardPage() {

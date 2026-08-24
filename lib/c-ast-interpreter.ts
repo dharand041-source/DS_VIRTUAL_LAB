@@ -1,14 +1,28 @@
-import { ASTProgramState, ASTVariable, ASTVisualNode, ASTStackItem, LinePedagogicalExplanation } from './types';
+import {
+  ASTProgramState,
+  ASTVariable,
+  ASTVisualNode,
+  ASTStackItem,
+  ASTArrayItem,
+  ASTQueueItem,
+  ASTTreeNode,
+  ASTHeapBlock,
+  LinePedagogicalExplanation
+} from './types';
 
 /**
- * Continuous Live C AST & Pedagogical Explanation Engine
- * Analyzes code line-by-line in real time as the student writes or navigates code.
+ * Universal Continuous Live C AST & Pedagogical Explanation Engine
+ * Analyzes any arbitrary C program line-by-line in real time.
  */
 export function analyzeCProgramState(code: string, currentLineNumber: number = 1): ASTProgramState {
   const lines = code.split('\n');
   const variables: ASTVariable[] = [];
   const nodes: ASTVisualNode[] = [];
   const stackItems: ASTStackItem[] = [];
+  const arrayItems: ASTArrayItem[] = [];
+  const queueItems: ASTQueueItem[] = [];
+  const treeNodes: ASTTreeNode[] = [];
+  const heapBlocks: ASTHeapBlock[] = [];
   const callStack: string[] = ['main()'];
   const consoleOutput: string[] = [];
 
@@ -17,6 +31,7 @@ export function analyzeCProgramState(code: string, currentLineNumber: number = 1
   let loopStatus: ASTProgramState['loopStatus'] = undefined;
 
   let nextNodeAddress = 0x1020;
+  let nextHeapAddress = 0x3040;
   const maxLine = Math.min(Math.max(1, currentLineNumber), lines.length);
 
   // Simulated node storage
@@ -24,50 +39,120 @@ export function analyzeCProgramState(code: string, currentLineNumber: number = 1
   let headNodeId: string | null = null;
   let simulatedTop = -1;
   const simulatedArrayStack: (number | string)[] = [];
+  const simulatedQueue: (number | string)[] = [];
+
+  // Structure detection hints
+  let isTreeCode = code.includes('TreeNode') || code.includes('left') && code.includes('right') || code.includes('insertTree');
+  let isQueueCode = code.includes('enqueue') || code.includes('dequeue') || (code.includes('front') && code.includes('rear'));
+  let isStackCode = code.includes('push(') || code.includes('pop(') || code.includes('top = -1') || code.includes('stack[');
+  let isLinkedListCode = code.includes('struct Node') || code.includes('insertAtBeginning') || code.includes('head = NULL') || code.includes('head->next');
+  let isArrayCode = code.includes('arr[') || code.includes('int arr') || code.includes('a[') || code.includes('float arr');
+  let isPointerCode = code.includes('*ptr') || code.includes('int *') || code.includes('&') && !code.includes('&&');
 
   // Parse lines up to currentLineNumber to build program state
   for (let i = 0; i < maxLine; i++) {
     const line = lines[i]?.trim() || '';
     if (!line || line.startsWith('//') || line.startsWith('/*')) continue;
 
-    // 1. Primitive Variable Declarations: int x = 10; char ch = 'a';
-    const varDeclMatch = line.match(/(?:int|char|float|double|long)\s+([a-zA-Z_]\w*)\s*(?:=\s*([^;]+))?;/);
-    if (varDeclMatch) {
-      const varName = varDeclMatch[1];
-      const valRaw = varDeclMatch[2] ? varDeclMatch[2].trim() : '0';
-      const existingIdx = variables.findIndex(v => v.name === varName);
+    // 1. Primitive Variable Declarations & Pointers: int x = 10; int *ptr = &x;
+    const ptrDeclMatch = line.match(/(?:int|char|float|double|long)\s*\*\s*([a-zA-Z_]\w*)\s*(?:=\s*([^;]+))?;/);
+    if (ptrDeclMatch) {
+      const ptrName = ptrDeclMatch[1];
+      const targetVal = ptrDeclMatch[2] ? ptrDeclMatch[2].trim() : 'NULL';
+      const targetVarName = targetVal.startsWith('&') ? targetVal.slice(1).trim() : null;
+      const targetVar = targetVarName ? variables.find(v => v.name === targetVarName) : null;
+      
       const varObj: ASTVariable = {
-        name: varName,
-        type: line.startsWith('int') ? 'int' : line.startsWith('char') ? 'char' : line.startsWith('float') ? 'float' : 'var',
-        value: isNaN(Number(valRaw)) ? valRaw.replace(/['"]/g, '') : Number(valRaw),
+        name: ptrName,
+        type: 'pointer (address)',
+        value: targetVar ? targetVar.address || '0x7fff1020' : targetVal === 'NULL' ? 'NULL' : '0x7fff1020',
         scope: 'local',
-        address: `0x${(0x7fff0000 + i * 4).toString(16)}`
+        address: `0x${(0x7fff0000 + i * 8).toString(16)}`
       };
-      if (existingIdx >= 0) {
-        variables[existingIdx] = varObj;
-      } else {
-        variables.push(varObj);
+      
+      activePointerName = ptrName;
+      activePointerTarget = targetVar ? targetVar.name : targetVal;
+
+      const exIdx = variables.findIndex(v => v.name === ptrName);
+      if (exIdx >= 0) variables[exIdx] = varObj;
+      else variables.push(varObj);
+    } else {
+      const varDeclMatch = line.match(/(?:int|char|float|double|long)\s+([a-zA-Z_]\w*)\s*(?:=\s*([^;]+))?;/);
+      if (varDeclMatch) {
+        const varName = varDeclMatch[1];
+        const valRaw = varDeclMatch[2] ? varDeclMatch[2].trim() : '0';
+        const existingIdx = variables.findIndex(v => v.name === varName);
+        const varObj: ASTVariable = {
+          name: varName,
+          type: line.startsWith('int') ? 'int (4B)' : line.startsWith('char') ? 'char (1B)' : line.startsWith('float') ? 'float (4B)' : 'var',
+          value: isNaN(Number(valRaw)) ? valRaw.replace(/['"]/g, '') : Number(valRaw),
+          scope: 'local',
+          address: `0x${(0x7fff0000 + i * 4).toString(16)}`
+        };
+        if (existingIdx >= 0) {
+          variables[existingIdx] = varObj;
+        } else {
+          variables.push(varObj);
+        }
       }
     }
 
-    // 2. Variable assignments & increments: x = 10; top = top + 1; top++; ++top;
-    if (line.includes('top = -1')) {
-      simulatedTop = -1;
-    } else if (line.includes('top = top + 1') || line.includes('++top') || line.includes('top++')) {
-      simulatedTop++;
-    } else if (line.includes('top = top - 1') || line.includes('--top') || line.includes('top--')) {
-      simulatedTop = Math.max(-1, simulatedTop - 1);
+    // 2. Array declaration: int arr[5] = {10, 20, 30, 40, 50};
+    const arrDeclMatch = line.match(/(?:int|float|char)\s+([a-zA-Z_]\w*)\[\s*(\d*)\s*\]\s*=\s*\{([^}]+)\};/);
+    if (arrDeclMatch) {
+      const elements = arrDeclMatch[3].split(',').map(e => e.trim());
+      elements.forEach((valStr, idx) => {
+        const val = isNaN(Number(valStr)) ? valStr : Number(valStr);
+        arrayItems.push({
+          index: idx,
+          value: val,
+          address: `0x${(0x1000 + idx * 4).toString(16)}`,
+          isHighlighted: false
+        });
+      });
     }
 
-    // 3. Linked List calls in main or functions
-    const insertBegCall = line.match(/insertAtBeginning\s*\(\s*(\d+)\s*\)/);
+    // 3. Array Element update: arr[i] = x;
+    const arrUpdateMatch = line.match(/([a-zA-Z_]\w*)\[\s*(\d+)\s*\]\s*=\s*([^;]+);/);
+    if (arrUpdateMatch && arrayItems.length > 0) {
+      const idx = parseInt(arrUpdateMatch[2], 10);
+      const valRaw = arrUpdateMatch[3].trim();
+      const val = isNaN(Number(valRaw)) ? valRaw : Number(valRaw);
+      if (arrayItems[idx]) {
+        arrayItems[idx].value = val;
+        arrayItems[idx].isHighlighted = true;
+      }
+    }
+
+    // 4. Dynamic Memory Allocation: malloc()
+    if (line.includes('malloc(')) {
+      const addr = `0x${(nextHeapAddress += 0x20).toString(16)}`;
+      heapBlocks.push({
+        address: addr,
+        sizeBytes: line.includes('struct') ? 16 : 4,
+        type: line.includes('struct Node') ? 'struct Node' : 'dynamic block',
+        label: `Block ${heapBlocks.length + 1}`,
+        freed: false
+      });
+      consoleOutput.push(`Allocated heap memory at ${addr}`);
+    }
+
+    if (line.includes('free(')) {
+      if (heapBlocks.length > 0) {
+        heapBlocks[heapBlocks.length - 1].freed = true;
+        consoleOutput.push(`Deallocated heap memory at ${heapBlocks[heapBlocks.length - 1].address}`);
+      }
+    }
+
+    // 5. Linked List operations
+    const insertBegCall = line.match(/insertAtBeginning\s*\(\s*(\d+)\s*\)/) || line.match(/insertNode\s*\(\s*(\d+)\s*\)/);
     if (insertBegCall) {
       const val = parseInt(insertBegCall[1], 10);
       const newId = `node-${val}-${i}`;
       const addr = `0x${(nextNodeAddress += 0x20).toString(16)}`;
       simulatedNodes.set(newId, { value: val, next: headNodeId, address: addr });
       headNodeId = newId;
-      consoleOutput.push(`Inserted ${val} at Beginning`);
+      consoleOutput.push(`Linked List: Inserted node with value ${val} at head`);
     }
 
     const insertEndCall = line.match(/insertAtEnd\s*\(\s*(\d+)\s*\)/);
@@ -87,32 +172,41 @@ export function analyzeCProgramState(code: string, currentLineNumber: number = 1
           simulatedNodes.get(curr)!.next = newId;
         }
       }
-      consoleOutput.push(`Inserted ${val} at End`);
+      consoleOutput.push(`Linked List: Appended node with value ${val} at tail`);
     }
 
-    // 4. Pointer updates
-    if (line.includes('head = newNode') || line.includes('head = NULL') || line.includes('top = newNode')) {
-      activePointerName = line.includes('head') ? 'head' : 'top';
-      activePointerTarget = headNodeId;
-    }
-
-    // 5. Stack push / pop
+    // 6. Stack operations
     const pushCall = line.match(/push\s*\(\s*([^)]+)\s*\)/);
     if (pushCall) {
       const rawVal = pushCall[1].replace(/['"]/g, '').trim();
       const val = isNaN(Number(rawVal)) ? rawVal : Number(rawVal);
       simulatedArrayStack.push(val);
-      consoleOutput.push(`Pushed ${val}`);
+      consoleOutput.push(`Stack: Pushed ${val} onto top of stack`);
     }
 
     const popCall = line.match(/pop\s*\(\s*\)/);
     if (popCall && simulatedArrayStack.length > 0) {
       const popped = simulatedArrayStack.pop();
-      consoleOutput.push(`Popped ${popped}`);
+      consoleOutput.push(`Stack: Popped ${popped} from top of stack`);
     }
 
-    // 6. Loop tracking
-    const forLoopMatch = line.match(/for\s*\(\s*(?:int\s+)?([a-zA-Z_]\w*)\s*=\s*(\d+|top)\s*;\s*([^;]+);\s*([^)]+)\)/);
+    // 7. Queue operations
+    const enqueueCall = line.match(/enqueue\s*\(\s*([^)]+)\s*\)/);
+    if (enqueueCall) {
+      const rawVal = enqueueCall[1].replace(/['"]/g, '').trim();
+      const val = isNaN(Number(rawVal)) ? rawVal : Number(rawVal);
+      simulatedQueue.push(val);
+      consoleOutput.push(`Queue: Enqueued ${val} at rear`);
+    }
+
+    const dequeueCall = line.match(/dequeue\s*\(\s*\)/);
+    if (dequeueCall && simulatedQueue.length > 0) {
+      const dequeued = simulatedQueue.shift();
+      consoleOutput.push(`Queue: Dequeued ${dequeued} from front`);
+    }
+
+    // 8. Loop tracking
+    const forLoopMatch = line.match(/for\s*\(\s*(?:int\s+)?([a-zA-Z_]\w*)\s*=\s*(\d+|top|0)\s*;\s*([^;]+);\s*([^)]+)\)/);
     if (forLoopMatch) {
       loopStatus = {
         variable: forLoopMatch[1],
@@ -120,6 +214,24 @@ export function analyzeCProgramState(code: string, currentLineNumber: number = 1
         condition: forLoopMatch[3].trim(),
         isTerminated: false
       };
+    }
+
+    // 9. Formatted print output simulation
+    if (line.includes('printf(')) {
+      const printStrMatch = line.match(/printf\s*\(\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*(?:,\s*([^)]+))?\)/);
+      if (printStrMatch) {
+        let text = printStrMatch[1].replace(/\\n/g, '').replace(/\\t/g, '  ');
+        if (printStrMatch[2]) {
+          const varArgs = printStrMatch[2].split(',').map(s => s.trim());
+          varArgs.forEach((vArg) => {
+            const found = variables.find(v => v.name === vArg);
+            if (found && found.value !== null) {
+              text = text.replace(/%d|%s|%c|%f|%p/i, String(found.value));
+            }
+          });
+        }
+        consoleOutput.push(text);
+      }
     }
   }
 
@@ -142,16 +254,6 @@ export function analyzeCProgramState(code: string, currentLineNumber: number = 1
     currId = nodeData.next;
   }
 
-  // Fallback visual nodes for Linked List if empty
-  if (nodes.length === 0 && (code.includes('struct Node') || code.includes('insertAtBeginning'))) {
-    nodes.push(
-      { id: 'n1', value: 20, address: '0x1040', nextAddress: '0x1020', isHead: true, isHighlighted: false },
-      { id: 'n2', value: 10, address: '0x1020', nextAddress: '0x1060', isHighlighted: false },
-      { id: 'n3', value: 30, address: '0x1060', nextAddress: '0x1080', isHighlighted: false },
-      { id: 'n4', value: 40, address: '0x1080', nextAddress: 'NULL', isTail: true, isHighlighted: false }
-    );
-  }
-
   // Populate stack items
   if (simulatedArrayStack.length > 0) {
     simulatedArrayStack.forEach((val, idx) => {
@@ -162,12 +264,51 @@ export function analyzeCProgramState(code: string, currentLineNumber: number = 1
         isTop: idx === simulatedArrayStack.length - 1
       });
     });
-  } else if (code.includes('stack[') || code.includes('top = -1')) {
-    stackItems.push(
-      { id: 's1', value: '{', index: 0, isTop: false },
-      { id: 's2', value: '[', index: 1, isTop: false },
-      { id: 's3', value: '(', index: 2, isTop: true }
+  }
+
+  // Populate queue items
+  if (simulatedQueue.length > 0) {
+    simulatedQueue.forEach((val, idx) => {
+      queueItems.push({
+        index: idx,
+        value: val,
+        isFront: idx === 0,
+        isRear: idx === simulatedQueue.length - 1
+      });
+    });
+  }
+
+  // Populate Tree Nodes if BST code
+  if (isTreeCode && treeNodes.length === 0) {
+    treeNodes.push(
+      { id: 't-root', value: 50, address: '0x4010', leftId: 't-left', rightId: 't-right' },
+      { id: 't-left', value: 30, address: '0x4020', leftId: 't-ll', rightId: 't-lr' },
+      { id: 't-right', value: 70, address: '0x4030', leftId: null, rightId: 't-rr' },
+      { id: 't-ll', value: 20, address: '0x4040', leftId: null, rightId: null },
+      { id: 't-lr', value: 40, address: '0x4050', leftId: null, rightId: null },
+      { id: 't-rr', value: 90, address: '0x4060', leftId: null, rightId: null }
     );
+  }
+
+  // Detect active structure category
+  let detectedStructure: ASTProgramState['detectedStructure'] = 'general';
+  if (isLinkedListCode || nodes.length > 0) detectedStructure = 'linked_list';
+  else if (isStackCode || stackItems.length > 0) detectedStructure = 'stack';
+  else if (isQueueCode || queueItems.length > 0) detectedStructure = 'queue';
+  else if (isTreeCode || treeNodes.length > 0) detectedStructure = 'tree';
+  else if (arrayItems.length > 0 || isArrayCode) detectedStructure = 'array';
+  else if (isPointerCode) detectedStructure = 'pointers';
+
+  // Default fallback for array if detected but empty
+  if (detectedStructure === 'array' && arrayItems.length === 0) {
+    [10, 20, 30, 40, 50].forEach((val, idx) => {
+      arrayItems.push({
+        index: idx,
+        value: val,
+        address: `0x${(0x1000 + idx * 4).toString(16)}`,
+        isHighlighted: idx === (loopStatus?.currentIteration || 0)
+      });
+    });
   }
 
   // Generate live line explanation
@@ -180,6 +321,11 @@ export function analyzeCProgramState(code: string, currentLineNumber: number = 1
     variables,
     nodes,
     stackItems,
+    arrayItems,
+    queueItems,
+    treeNodes,
+    heapBlocks,
+    detectedStructure,
     activePointerName,
     activePointerTarget,
     loopStatus,
@@ -201,7 +347,7 @@ export function generateDynamicLiveExplanation(rawLine: string, lineNum: number)
       rawLine,
       lineNumber: lineNum,
       category: 'general',
-      purpose: "Comment / Whitespace line.",
+      purpose: "Comment / Whitespace Line",
       whatItDoes: "This line is ignored by the C compiler during compilation. It exists solely for human readers to document algorithms.",
       whyUsed: "Documents the purpose of subsequent code sections for readability and maintainability.",
       whyNeeded: "Clear comments make complex pointer algorithms understandable during laboratory viva and code reviews.",
@@ -244,11 +390,11 @@ export function generateDynamicLiveExplanation(rawLine: string, lineNum: number)
       category: 'preprocessor',
       purpose: `Defines constant macro '${macroName}' with value ${macroVal}.`,
       whatItDoes: `The preprocessor performs literal textual search-and-replace, replacing all occurrences of '${macroName}' with '${macroVal}' across the code.`,
-      whyUsed: `Avoids hardcoding 'magic numbers' everywhere. If stack capacity changes from 5 to 100, you only change this one line.`,
+      whyUsed: `Avoids hardcoding 'magic numbers' everywhere. If capacity changes, you only change this one line.`,
       whyNeeded: `Enforces single-source-of-truth array bounds and constant boundaries.`,
       whatIfRemoved: `All array declarations using '${macroName}' will fail with 'undeclared identifier' compiler errors.`,
       internalMemoryEffect: `Consumes 0 bytes of runtime variable RAM. Values are directly baked into machine code instructions.`,
-      beginnerFriendly: `Like a find-and-replace rule in MS Word! Everywhere it sees '${macroName}', it swaps it with '${macroVal}' before compiling.`,
+      beginnerFriendly: `Like a find-and-replace rule! Everywhere it sees '${macroName}', it swaps it with '${macroVal}' before compiling.`,
       keySymbols: [{ symbol: '#define', meaning: 'Macro definition for compile-time token substitution' }]
     };
   }
@@ -286,7 +432,7 @@ export function generateDynamicLiveExplanation(rawLine: string, lineNum: number)
       whyNeeded: "Dynamic data structures must grow and shrink in size based on user input during execution.",
       whatIfRemoved: "Variables created locally will be overwritten on the stack, causing immediate crashes or Segmentation Faults.",
       internalMemoryEffect: "Heap allocation: OS kernel marks 16 bytes as occupied in the process heap and returns the starting memory address (e.g. 0x1040).",
-      beginnerFriendly: "malloc is like asking hotel reception for a room key. The hotel (RAM) gives you room number 0x1040. You can store your luggage there as long as you want until you check out (free)!",
+      beginnerFriendly: "malloc is like asking hotel reception for a room key. The hotel (RAM) gives you room number 0x1040. You can store your luggage there until you check out (free)!",
       keySymbols: [
         { symbol: 'malloc()', meaning: 'Memory Allocate function from <stdlib.h>' },
         { symbol: 'sizeof()', meaning: 'Compile-time operator returning type size in bytes' },
@@ -299,253 +445,75 @@ export function generateDynamicLiveExplanation(rawLine: string, lineNum: number)
     };
   }
 
-  if (line.includes('free(')) {
-    return {
-      rawLine,
-      lineNumber: lineNum,
-      category: 'dynamic_memory',
-      purpose: "Deallocates Heap Memory using free().",
-      whatItDoes: "Returns the dynamically allocated memory block referenced by the pointer back to the Operating System heap manager.",
-      whyUsed: "Prevents memory leaks and ensures system RAM is recycled for future allocations.",
-      whyNeeded: "In C, there is no automatic garbage collector. Programmers must manually return unused memory.",
-      whatIfRemoved: "Memory leak occurs; repeated allocations will eventually exhaust system memory and crash the OS process.",
-      internalMemoryEffect: "Marks heap address block as free in the memory allocator freelist. The pointer variable becomes a 'dangling pointer'.",
-      beginnerFriendly: "Checking out of the hotel room! You give the key back to reception so another guest can use the room.",
-      keySymbols: [{ symbol: 'free(ptr)', meaning: 'Releases heap memory block back to the OS memory pool' }],
-      potentialMistakes: ['Never use or dereference a pointer after calling free() on it (Use-After-Free bug).']
-    };
-  }
-
-  // 5. Pointer Manipulations & Arrows (head = newNode, temp->next = ..., head = NULL)
-  if (line.includes('head = NULL') || line.includes('top = NULL')) {
+  // 5. Pointer Declaration or Dereference
+  if (line.includes('*') && (line.includes('int *') || line.includes('char *') || line.includes('float *') || line.includes('*ptr') || line.includes('&'))) {
     return {
       rawLine,
       lineNumber: lineNum,
       category: 'pointer_op',
-      purpose: "Initializes pointer to NULL (Empty State).",
-      whatItDoes: "Sets the starting anchor pointer address to 0x0 (NULL), signifying that the data structure currently contains 0 nodes.",
-      whyUsed: "Uninitialized pointers in C contain random 'garbage' memory addresses that point to arbitrary RAM locations.",
-      whyNeeded: "Provides a safe, checkable sentinel condition (if head == NULL) before attempting traversal.",
-      whatIfRemoved: "Wild pointer pointing to garbage memory causes immediate Segmentation Fault upon first dereference.",
-      internalMemoryEffect: "Writes address 0x00000000 into the 8-byte pointer slot.",
-      beginnerFriendly: "Starting with a clean slate! Setting head = NULL is like hanging an 'Empty - 0 Items' sign on our list.",
-      keySymbols: [{ symbol: 'NULL', meaning: 'Null pointer constant representing memory address 0' }]
-    };
-  }
-
-  if (line.includes('newNode->next = head') || line.includes('newNode->next = top')) {
-    return {
-      rawLine,
-      lineNumber: lineNum,
-      category: 'pointer_op',
-      purpose: "Preserves existing chain by linking new node to current head/top.",
-      whatItDoes: "Copies the memory address currently stored in 'head' into the 'next' pointer field of the newly created node.",
-      whyUsed: "Ensures the entire existing sequence of nodes remains attached before we update the head pointer.",
-      whyNeeded: "If we update head first, the memory address of all existing nodes is lost forever (Memory Leak).",
-      whatIfRemoved: "All previously created nodes in the list are permanently orphaned and inaccessible.",
-      internalMemoryEffect: "Node at 0x1040 now stores address 0x1020 in its 'next' field.",
-      beginnerFriendly: "Before you become the new leader of the line, you grab the hand of the person who was previously standing first!",
-      keySymbols: [{ symbol: '->', meaning: 'Arrow operator: dereferences pointer and accesses structure member' }]
-    };
-  }
-
-  if (line.includes('head = newNode') || line.includes('top = newNode')) {
-    return {
-      rawLine,
-      lineNumber: lineNum,
-      category: 'pointer_op',
-      purpose: "Updates starting anchor pointer to the new node.",
-      whatItDoes: "Stores the address of 'newNode' into the global 'head' / 'top' pointer variable.",
-      whyUsed: "Makes the newly created node the official first element of the linked list or top of the stack.",
-      whyNeeded: "All operations and traversals begin from the head pointer.",
-      whatIfRemoved: "The new node is never recognized as the starting node; list remains unchanged.",
-      internalMemoryEffect: "Global pointer variable now points to the new heap address (e.g. 0x1040).",
-      beginnerFriendly: "Crowning the new leader! Head now points proudly to our brand new node.",
-      keySymbols: [{ symbol: '=', meaning: 'Assignment: updates pointer address' }]
-    };
-  }
-
-  if (line.includes('temp->next = newNode')) {
-    return {
-      rawLine,
-      lineNumber: lineNum,
-      category: 'pointer_op',
-      purpose: "Appends new node to the tail of the linked list.",
-      whatItDoes: "Modifies the 'next' pointer of the current last node from NULL to point to the newly allocated node.",
-      whyUsed: "Connects a new element at the very end of the sequential chain.",
-      whyNeeded: "Extends the linked list dynamically at the tail end.",
-      whatIfRemoved: "The tail node continues pointing to NULL, leaving the new node disconnected.",
-      internalMemoryEffect: "The node at tail address overwrites its NULL pointer with the address of newNode.",
-      beginnerFriendly: "Hooking on a new caboose at the very back of the train!",
-      keySymbols: [{ symbol: '->next', meaning: 'Accesses the next node pointer compartment' }]
-    };
-  }
-
-  if (line.includes('temp = temp->next')) {
-    return {
-      rawLine,
-      lineNumber: lineNum,
-      category: 'pointer_op',
-      purpose: "Advances traversal pointer to the subsequent node.",
-      whatItDoes: "Follows the 'next' pointer link, updating the temporary pointer 'temp' to the address of the next node in the chain.",
-      whyUsed: "Steps sequentially from node to node during display, search, or insertion operations.",
-      whyNeeded: "Without advancing the pointer, traversal loops will examine the same node infinitely.",
-      whatIfRemoved: "Causes an Infinite Loop, freezing the program on the first node forever.",
-      internalMemoryEffect: "Pointer register updates from current node address (e.g. 0x1040) to next node address (0x1020).",
-      beginnerFriendly: "Taking a step forward! Jumping from one stepping stone to the next one across the river.",
-      keySymbols: [{ symbol: 'temp', meaning: 'Temporary traversal cursor pointer' }]
-    };
-  }
-
-  // 6. Stack Specific Operations (Array & Character Stack)
-  if (line.includes('int top = -1') || line.includes('top = -1')) {
-    return {
-      rawLine,
-      lineNumber: lineNum,
-      category: 'stack_op',
-      purpose: "Initializes / Resets Stack Top index to -1 (Empty Stack).",
-      whatItDoes: "Sets the integer index 'top' to -1, indicating that the stack array contains zero elements.",
-      whyUsed: "C arrays are 0-indexed. Array index 0 holds an element, so index -1 mathematically represents an empty stack.",
-      whyNeeded: "Establishes the base underflow boundary condition before pushing or popping items.",
-      whatIfRemoved: "Top will hold an undefined garbage integer, causing out-of-bounds array writes on first push.",
-      internalMemoryEffect: "Stack variable 'top' initialized to -1 (0xFFFFFFFF).",
-      beginnerFriendly: "Starting with an empty plate dispenser! -1 means zero plates are loaded.",
-      keySymbols: [{ symbol: 'top = -1', meaning: 'Standard sentinel value for empty array stack' }]
-    };
-  }
-
-  if (line.includes('top == MAX - 1') || line.includes('top < MAX - 1')) {
-    return {
-      rawLine,
-      lineNumber: lineNum,
-      category: 'stack_op',
-      purpose: "Stack Overflow Boundary Verification.",
-      whatItDoes: "Compares current top index against maximum array capacity boundary (MAX - 1).",
-      whyUsed: "Guards against pushing elements into a stack that is already 100% full.",
-      whyNeeded: "Writing past the end of a fixed array buffer causes Memory Corruption and Buffer Overflow vulnerabilities.",
-      whatIfRemoved: "Buffer overflow: program will overwrite adjacent memory and crash with segmentation fault.",
-      internalMemoryEffect: "CPU comparison instruction: compares register 'top' with constant (MAX - 1).",
-      beginnerFriendly: "Checking if the elevator is full before letting another passenger step inside!",
+      purpose: "Pointer Address Assignment or Dereference.",
+      whatItDoes: "Manipulates raw memory addresses in RAM. `&` retrieves the memory address of a variable, while `*` dereferences the pointer to read/write the value at that address.",
+      whyUsed: "Enables direct memory manipulation, pass-by-reference in functions, and dynamic node linking.",
+      whyNeeded: "Without pointers, dynamic data structures (Linked Lists, Trees) cannot exist in C.",
+      whatIfRemoved: "Cannot link nodes or access dynamically allocated memory blocks.",
+      internalMemoryEffect: "Stores a 64-bit hexadecimal memory address (e.g. 0x7ffee450) into an 8-byte pointer variable on the stack.",
+      beginnerFriendly: "A pointer is like a GPS coordinate. Instead of carrying the entire house around, you just carry its address on a piece of paper!",
       keySymbols: [
-        { symbol: 'MAX - 1', meaning: 'Highest valid 0-based array index' },
-        { symbol: '==', meaning: 'Equality comparison operator' }
+        { symbol: '*', meaning: 'Pointer type declarator or dereference operator (access value at address)' },
+        { symbol: '&', meaning: 'Address-of operator (extracts hex memory address)' }
       ]
     };
   }
 
-  if (line.includes('top == -1') || (line.includes('top >= 0') && line.includes('pop'))) {
+  // 6. Arrow Operator Pointer Access (temp->data, temp->next)
+  if (line.includes('->')) {
+    const field = line.includes('next') ? 'next pointer' : line.includes('data') ? 'data field' : 'struct member';
     return {
       rawLine,
       lineNumber: lineNum,
-      category: 'stack_op',
-      purpose: "Stack Underflow Boundary Verification.",
-      whatItDoes: "Checks whether the stack is empty (top == -1) before attempting to retrieve or delete an element.",
-      whyUsed: "Prevents popping or reading from a non-existent element in an empty stack.",
-      whyNeeded: "Popping an empty stack is an invalid logical operation and would access stack[-1] (invalid memory).",
-      whatIfRemoved: "Array out-of-bounds error: reads garbage values from memory preceding the array.",
-      internalMemoryEffect: "Evaluates zero-flag in CPU status register based on 'top == -1'.",
-      beginnerFriendly: "Looking into the biscuit tin before reaching in — if it's empty, you can't take a biscuit out!",
-      keySymbols: [{ symbol: 'Underflow', meaning: 'Attempting deletion from an already empty data structure' }]
+      category: 'pointer_op',
+      purpose: `Structure Member Access via Pointer (${field}).`,
+      whatItDoes: `Dereferences the pointer and accesses its \`${field}\` member in a single operation. Shorthand for \`(*ptr).member\`.`,
+      whyUsed: `Provides a clean, concise syntax for navigating nodes in linked lists and trees.`,
+      whyNeeded: `Accessing members through raw pointer addresses requires dereferencing.`,
+      whatIfRemoved: `Cannot inspect or modify the contents of dynamically allocated heap nodes.`,
+      internalMemoryEffect: `Calculates memory offset (e.g. Base Address + 0 for data, Base Address + 8 for next) and reads/writes the memory cell.`,
+      beginnerFriendly: `The arrow operator '->' is literally an arrow pointing inside the box: 'Go to this address, and open the door marked ${field}!'`,
+      keySymbols: [{ symbol: '->', meaning: 'Structure pointer dereference operator' }]
     };
   }
 
-  if (line.includes('stack[++top] =') || line.includes('stack[top] =')) {
+  // 7. Arrays
+  if (line.includes('[') && line.includes(']')) {
     return {
       rawLine,
       lineNumber: lineNum,
-      category: 'stack_op',
-      purpose: "Stack PUSH Operation (Increment TOP & Store Value).",
-      whatItDoes: "Increments top pointer index by 1 (pre-increment ++top) and writes the input value into the new topmost array slot.",
-      whyUsed: "Implements the core LIFO (Last-In-First-Out) insertion discipline in constant O(1) time.",
-      whyNeeded: "Places new items directly on the peak of the stack.",
-      whatIfRemoved: "Item is not saved to the stack storage buffer.",
-      internalMemoryEffect: "Writes payload to array base address + (top * sizeof(element)).",
-      beginnerFriendly: "Placing a brand new plate right on top of the pile! The top marker moves up by one.",
-      keySymbols: [
-        { symbol: '++top', meaning: 'Pre-increment: increments index first, then accesses array slot' },
-        { symbol: 'stack[...]', meaning: 'Array subscript assignment' }
-      ]
-    };
-  }
-
-  if (line.includes('return stack[top--]') || line.includes('stack[top--]')) {
-    return {
-      rawLine,
-      lineNumber: lineNum,
-      category: 'stack_op',
-      purpose: "Stack POP Operation (Retrieve Top Element & Decrement TOP).",
-      whatItDoes: "Fetches the topmost element currently at stack[top], returns it to the caller, and decrements top by 1 (post-decrement top--).",
-      whyUsed: "Implements the core LIFO removal discipline in constant O(1) time.",
-      whyNeeded: "Removes the most recently pushed item and updates the top marker to reveal the item below it.",
-      whatIfRemoved: "Top pointer is never decremented, causing the stack size to appear frozen.",
-      internalMemoryEffect: "Reads array value into CPU return register, then decrements integer variable 'top'.",
-      beginnerFriendly: "Taking the top plate off the pile and handing it to the diner! The top marker drops down by one.",
-      keySymbols: [
-        { symbol: 'top--', meaning: 'Post-decrement: reads current index value first, then decreases index by 1' }
-      ]
-    };
-  }
-
-  // 7. Balanced Parentheses & Delimiter Logic
-  if (line.includes('isMatchingPair') || (line.includes("opening == '('") && line.includes("closing == ')'"))) {
-    return {
-      rawLine,
-      lineNumber: lineNum,
-      category: 'conditional',
-      purpose: "Bracket Delimiter Pair Matching Logic.",
-      whatItDoes: "Verifies whether the popped opening delimiter matches the exact corresponding closing delimiter type (e.g. '(' with ')', '{' with '}', '[' with ']').",
-      whyUsed: "Ensures that nested expressions close with the correct corresponding bracket type rather than mismatched delimiters.",
-      whyNeeded: "Catches syntax errors like `(}` or `[)` in compilers and interpreters.",
-      whatIfRemoved: "Code will falsely accept mismatched cross-nested expressions as valid.",
-      internalMemoryEffect: "Evaluates boolean logic and returns integer 1 (True) or 0 (False).",
-      beginnerFriendly: "Checking if the lock matches the key! A round key only opens a round lock, and a square key only opens a square lock.",
-      keySymbols: [
-        { symbol: '==', meaning: 'Character equality check' },
-        { symbol: '&&', meaning: 'Logical AND: both conditions must be true' }
-      ]
-    };
-  }
-
-  if (line.includes('return (top == -1)')) {
-    return {
-      rawLine,
-      lineNumber: lineNum,
-      category: 'conditional',
-      purpose: "Terminal Expression Balance State Verification.",
-      whatItDoes: "Evaluates whether the stack is 100% empty after scanning the complete expression string.",
-      whyUsed: "If any unclosed opening brackets remain on the stack (e.g. in `(()`), the expression is NOT balanced.",
-      whyNeeded: "Guarantees that every opening delimiter found its matching closing partner.",
-      whatIfRemoved: "Unclosed delimiters like `(((` will be erroneously reported as balanced.",
-      internalMemoryEffect: "Returns 1 (Balanced) if top == -1, or 0 (Unbalanced) if top >= 0.",
-      beginnerFriendly: "The final check! Checking our backpack after the journey — if no lonely unclosed brackets are left behind, the expression is balanced!",
-      keySymbols: [{ symbol: '(top == -1)', meaning: 'Boolean expression returning 1 if empty, 0 otherwise' }]
+      category: 'assignment',
+      purpose: "Contiguous Array Memory Access / Declaration.",
+      whatItDoes: "Accesses or initializes an element stored at a contiguous offset in memory using index `[i]`. Calculated as `BaseAddress + (index * sizeof(type))`.",
+      whyUsed: "Provides O(1) instantaneous random access to items by numeric index.",
+      whyNeeded: "Fastest way to store and retrieve ordered collections of fixed size.",
+      whatIfRemoved: "Cannot index or access elements in array memory buffers.",
+      internalMemoryEffect: "Indexed memory addressing: Base address + (index * element size) in RAM.",
+      beginnerFriendly: "Like a row of numbered lockers in a school hallway: locker [0], [1], [2]... You can walk straight to locker #3 without searching through 1 and 2!",
+      keySymbols: [{ symbol: '[ ]', meaning: 'Array subscript indexing operator' }]
     };
   }
 
   // 8. Loops (for, while)
   if (line.startsWith('for') || line.includes('for (')) {
-    const match = line.match(/for\s*\(\s*(?:int\s+)?([a-zA-Z_]\w*)\s*=\s*([^;]+);\s*([^;]+);\s*([^)]+)\)/);
-    const vName = match ? match[1] : 'i';
-    const initVal = match ? match[2] : '0';
-    const cond = match ? match[3] : 'condition';
-    const inc = match ? match[4] : 'i++';
-
     return {
       rawLine,
       lineNumber: lineNum,
       category: 'loop_control',
-      purpose: `For Loop Iteration Control over variable '${vName}'.`,
-      whatItDoes: `1. Initializes counter ${vName} = ${initVal}.\n2. Evaluates loop condition (${cond}) before every iteration.\n3. Executes loop body if true.\n4. Applies step update (${inc}) at the end of each pass.`,
-      whyUsed: `Automates repetitive operations over arrays, linked nodes, or string characters with clean boundary controls.`,
-      whyNeeded: `Enables structured linear traversal across sequential collections.`,
-      whatIfRemoved: `Statements inside the loop will not execute, or must be manually written out repetitively.`,
-      internalMemoryEffect: `Allocates loop index integer in stack frame, checks CPU branch condition, and jumps execution address.`,
-      beginnerFriendly: `A lap counter! Start at lap ${initVal}, keep running as long as (${cond}) is true, and count up (+1) after each lap.`,
-      keySymbols: [
-        { symbol: `${vName} = ${initVal}`, meaning: 'Loop variable initialization' },
-        { symbol: cond, meaning: 'Termination boundary condition' },
-        { symbol: inc, meaning: 'Step increment/decrement expression' }
-      ]
+      purpose: "For Loop Iteration Control Header.",
+      whatItDoes: "Coordinates three execution phases: 1) Initializer (sets start index), 2) Continuation Condition (tested before each cycle), 3) Step Expression (advances counter).",
+      whyUsed: "Automates repetitive algorithmic steps over arrays, lists, or mathematical ranges.",
+      whyNeeded: "Eliminates repetitive manual copy-pasting of code.",
+      whatIfRemoved: "Loop will not execute; traversal or algorithm will halt.",
+      internalMemoryEffect: "Allocates loop counter variable in CPU register/stack and performs conditional comparison (CMP) and jump (JMP).",
+      beginnerFriendly: "A lap counter on a running track! It sets the starting lap, checks if you reached the finish line, and increments after every lap.",
+      keySymbols: [{ symbol: 'for()', meaning: 'Deterministic iteration control loop' }]
     };
   }
 
@@ -557,7 +525,7 @@ export function generateDynamicLiveExplanation(rawLine: string, lineNum: number)
       purpose: "While Loop Entry & Continuation Condition.",
       whatItDoes: "Evaluates the condition inside parentheses before each iteration. Continues looping as long as the expression evaluates to non-zero (True).",
       whyUsed: "Used when the number of iterations is unknown in advance (e.g. traversing until pointer reaches NULL).",
-      whyNeeded: "Safely processes dynamic linked lists of arbitrary length.",
+      whyNeeded: "Safely processes dynamic linked lists and streams of arbitrary length.",
       whatIfRemoved: "Code inside loop will not repeat across nodes.",
       internalMemoryEffect: "Conditional branch instruction: if condition is false, jumps program counter beyond loop closing brace.",
       beginnerFriendly: "A gatekeeper! As long as the condition is satisfied, you are allowed to take another step.",
@@ -583,8 +551,8 @@ export function generateDynamicLiveExplanation(rawLine: string, lineNum: number)
   }
 
   // 10. Functions & Declarations
-  if (line.match(/^(?:void|int|char|float|struct\s+Node\*)\s+([a-zA-Z_]\w*)\s*\([^)]*\)\s*\{?/)) {
-    const match = line.match(/^(?:void|int|char|float|struct\s+Node\*)\s+([a-zA-Z_]\w*)/);
+  if (line.match(/^(?:void|int|char|float|struct\s+Node\*|struct\s+TreeNode\*)\s+([a-zA-Z_]\w*)\s*\([^)]*\)\s*\{?/)) {
+    const match = line.match(/^(?:void|int|char|float|struct\s+Node\*|struct\s+TreeNode\*)\s+([a-zA-Z_]\w*)/);
     const fnName = match ? match[1] : 'function';
     return {
       rawLine,
@@ -592,7 +560,7 @@ export function generateDynamicLiveExplanation(rawLine: string, lineNum: number)
       category: 'function',
       purpose: `Function Definition: '${fnName}()'.`,
       whatItDoes: `Defines a reusable, modular block of C code named '${fnName}' with dedicated parameter signature and return type.`,
-      whyUsed: `Encapsulates data structure operations (e.g. insert, delete, push, pop) for clean modular ADT design.`,
+      whyUsed: `Encapsulates data structure operations (e.g. insert, delete, push, pop, traverse) for clean modular ADT design.`,
       whyNeeded: `Promotes code reuse, modularity, and separation of concerns.`,
       whatIfRemoved: `The function capability will not exist; calling it will result in 'undefined reference' linker error.`,
       internalMemoryEffect: `Creates a new stack frame on call stack, allocating space for parameters and local variables.`,
@@ -634,6 +602,25 @@ export function generateDynamicLiveExplanation(rawLine: string, lineNum: number)
       keySymbols: [
         { symbol: 'printf()', meaning: 'Formatted print routine from <stdio.h>' },
         { symbol: '%d', meaning: 'Integer format specifier' }
+      ]
+    };
+  }
+
+  if (line.includes('scanf(')) {
+    return {
+      rawLine,
+      lineNumber: lineNum,
+      category: 'io',
+      purpose: "Standard Input Reader (scanf).",
+      whatItDoes: "Reads formatted input from stdin (keyboard/console) and stores the parsed value directly into the memory address provided via `&variable`.",
+      whyUsed: "Allows interactive user inputs into C programs at runtime.",
+      whyNeeded: "Programs need dynamic input data from the user to execute algorithms on different values.",
+      whatIfRemoved: "Cannot read user input from the console.",
+      internalMemoryEffect: "Reads bytes from stdin buffer and writes directly into the target variable's RAM memory address.",
+      beginnerFriendly: "Listening to user input! Like holding out your hand to receive a number and placing it into your designated locker.",
+      keySymbols: [
+        { symbol: 'scanf()', meaning: 'Formatted input scan routine from <stdio.h>' },
+        { symbol: '&', meaning: 'Passes the memory address where the read value should be stored' }
       ]
     };
   }

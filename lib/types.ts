@@ -85,16 +85,81 @@ export interface LinePedagogicalExplanation {
   potentialMistakes?: string[];
 }
 
+export interface SubExperiment {
+  id: string;
+  subCode: string; // e.g. "1A", "1B", "1C"
+  title: string;
+  aim: string;
+  code: string;
+  starterCode?: string;
+  algorithm: string[];
+}
+
+export type FeedbackCategory =
+  | 'AI_TEACHING'
+  | 'VISUALIZATION'
+  | 'CODE_EDITOR'
+  | 'EXPERIMENT_CONTENT'
+  | 'ALGORITHM'
+  | 'ASSESSMENT'
+  | 'VIVA'
+  | 'UI_UX'
+  | 'PERFORMANCE'
+  | 'OVERALL';
+
+export interface StudentFeedback {
+  id: string;
+  userId: string;
+  userName: string;
+  userRole: string;
+  collegeName: string;
+  isOurCollege: boolean;
+  experimentId: string;
+  experimentTitle: string;
+  ratings: {
+    aiTeaching: number;
+    visualization: number;
+    codeEditor: number;
+    assessment: number;
+    viva: number;
+    overall: number;
+  };
+  helpedMost?: string;
+  difficultPart?: string;
+  improvementSuggestion?: string;
+  wouldRecommend: 'yes' | 'maybe' | 'no';
+  category: FeedbackCategory;
+  isAnonymous: boolean;
+  createdAt: string;
+}
+
+export interface FeedbackAnalytics {
+  experimentId: string;
+  averageRatings: {
+    aiTeaching: number;
+    visualization: number;
+    codeEditor: number;
+    assessment: number;
+    viva: number;
+    overall: number;
+  };
+  totalResponses: number;
+  categoryBreakdown: Record<FeedbackCategory, number>;
+}
+
 export interface Experiment {
   id: string;
   expNumber: number;
   title: string;
   shortTitle: string;
   category: string;
+  dataStructure?: string;
+  difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
   aim: string;
   objectives: string[];
   definition: string;
   theory: string;
+  subExperiments?: SubExperiment[];
   realWorldExample: {
     title: string;
     analogy: string;
@@ -126,7 +191,24 @@ export interface Experiment {
   coMapping: string[]; // Course Outcomes e.g. ["CO1", "CO2"]
   vivaQuestions: VivaQuestion[];
   assessmentQuestions: AssessmentQuestion[];
-  visualizationType: 'linked_list' | 'stack_array' | 'stack_linked_list' | 'parentheses';
+  visualizationType:
+    | 'linked_list'
+    | 'stack_array'
+    | 'stack_linked_list'
+    | 'parentheses'
+    | 'queue_array'
+    | 'queue_linked_list'
+    | 'bst'
+    | 'dijkstra'
+    | 'kruskal'
+    | 'prim'
+    | 'insertion_sort'
+    | 'merge_sort'
+    | 'quick_sort'
+    | 'recursion'
+    | 'structures'
+    | 'pointers'
+    | 'project';
 }
 
 export interface ASTVisualNode {
@@ -155,12 +237,48 @@ export interface ASTVariable {
   address?: string;
 }
 
+export interface ASTArrayItem {
+  index: number;
+  value: string | number;
+  address: string;
+  isHighlighted?: boolean;
+}
+
+export interface ASTQueueItem {
+  index: number;
+  value: string | number;
+  isFront?: boolean;
+  isRear?: boolean;
+}
+
+export interface ASTTreeNode {
+  id: string;
+  value: number | string;
+  leftId?: string | null;
+  rightId?: string | null;
+  address: string;
+}
+
+export interface ASTHeapBlock {
+  address: string;
+  sizeBytes: number;
+  type: string;
+  label: string;
+  value?: any;
+  freed: boolean;
+}
+
 export interface ASTProgramState {
   activeLineNumber: number;
   activeLineText: string;
   variables: ASTVariable[];
   nodes: ASTVisualNode[];
   stackItems: ASTStackItem[];
+  arrayItems?: ASTArrayItem[];
+  queueItems?: ASTQueueItem[];
+  treeNodes?: ASTTreeNode[];
+  heapBlocks?: ASTHeapBlock[];
+  detectedStructure?: 'linked_list' | 'stack' | 'queue' | 'array' | 'tree' | 'pointers' | 'general';
   charBuffer?: string[];
   matchedIndices?: number[];
   activePointerName?: string;
