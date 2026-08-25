@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { LoginModal } from '@/components/auth/login-modal';
@@ -44,7 +45,7 @@ export function Navbar() {
             {isNotHome && (
               <button
                 onClick={() => router.back()}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border bg-surface hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-secondary text-xs font-semibold shadow-xs transition"
+                className="btn btn-outline-secondary btn-sm"
                 title="Go Back"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
@@ -53,8 +54,14 @@ export function Navbar() {
             )}
 
             <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-              <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white font-mono font-extrabold text-sm shadow-subtle group-hover:bg-red-600 transition-colors">
-                C
+              <div className="w-8 h-8 rounded-lg bg-white border border-border flex items-center justify-center p-1 shadow-subtle group-hover:border-red-500 transition-colors overflow-hidden">
+                <Image
+                  src="/logo.png"
+                  alt="Data Structures Lab Logo"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-black text-black tracking-tight leading-none group-hover:text-red-600 transition-colors">
@@ -97,9 +104,9 @@ export function Navbar() {
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => setShowLoginModal(true)}
-              className="px-4 py-2 rounded-lg border border-border bg-white hover:bg-red-600 hover:text-white hover:border-red-600 text-black text-xs font-bold transition shadow-subtle flex items-center gap-2 group"
+              className="btn btn-outline-danger"
             >
-              <LogIn className="w-3.5 h-3.5 group-hover:text-white text-red-600" />
+              <LogIn className="w-3.5 h-3.5" />
               <span>Login</span>
             </button>
 

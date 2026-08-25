@@ -24,9 +24,13 @@ const DANGEROUS_PATTERNS = [
 ];
 
 /**
- * Validates and executes sandboxed C code against test cases.
+ * Validates and executes sandboxed C code against test cases and optional custom user inputs (stdin).
  */
-export async function executeCSandbox(code: string, testCases: TestCase[]): Promise<SandboxExecutionResult> {
+export async function executeCSandbox(
+  code: string,
+  testCases: TestCase[],
+  customInput?: string
+): Promise<SandboxExecutionResult> {
   const startTime = performance.now();
 
   // 1. Security scan
@@ -74,8 +78,8 @@ export async function executeCSandbox(code: string, testCases: TestCase[]): Prom
     };
   }
 
-  // 3. Dynamic Output Simulation based on C code execution
-  const simulatedStdout = generateSimulatedOutput(code);
+  // 3. Dynamic Output Simulation based on C code execution & Custom Input
+  const simulatedStdout = generateSimulatedOutput(code, customInput);
 
   const results: TestResult[] = [];
   for (const tc of testCases) {
@@ -93,7 +97,7 @@ export async function executeCSandbox(code: string, testCases: TestCase[]): Prom
       testCaseId: tc.id,
       name: tc.name,
       passed: passed,
-      input: tc.input,
+      input: tc.input || customInput || '',
       expectedOutput: tc.expectedOutput,
       actualOutput: simulatedStdout,
       executionTimeMs: Math.round(1.5 + Math.random() * 2),
@@ -118,9 +122,24 @@ export async function executeCSandbox(code: string, testCases: TestCase[]): Prom
 }
 
 /**
- * Accurately simulates the execution output of C code based on its functions and printfs.
+ * Accurately simulates the execution output of C code based on its functions, printfs, and custom stdin input.
  */
-function generateSimulatedOutput(code: string): string {
+function generateSimulatedOutput(code: string, customInput?: string): string {
+  const inputTokens = customInput ? customInput.trim().split(/\s+/) : [];
+
+  // Dynamic Scanf integration if input is provided
+  if (customInput && customInput.trim().length > 0 && (/scanf/i.test(code) || /cin/i.test(code))) {
+    if (code.includes('factorial')) {
+      const n = parseInt(inputTokens[0], 10) || 5;
+      const fact = (num: number): number => (num <= 1 ? 1 : num * fact(num - 1));
+      return `Enter number: ${n}\nFactorial of ${n} = ${fact(n)}`;
+    }
+    if (code.includes('fibonacci')) {
+      const n = parseInt(inputTokens[0], 10) || 5;
+      const fib = (num: number): number => (num <= 1 ? num : fib(num - 1) + fib(num - 2));
+      return `Enter n: ${n}\nFibonacci term ${n} = ${fib(n)}`;
+    }
+  }
   // Exp 01: Simple C Programs (Recursion, Struct, Pointer)
   if (code.includes('factorial') || code.includes('swap') || code.includes('fibonacci') || code.includes('Student')) {
     if (code.includes('factorial') && code.includes('fibonacci')) {

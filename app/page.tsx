@@ -23,6 +23,8 @@ import {
   MessageSquare
 } from 'lucide-react';
 
+import { InteractiveLearningDemo } from '@/components/home/interactive-learning-demo';
+
 export default function HomePage() {
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -54,8 +56,8 @@ export default function HomePage() {
 
           {/* Master Headline */}
           <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-black max-w-3xl leading-[1.1] mb-6">
-            Understand Data Structures. <br />
-            <span className="text-red-600 font-black">Don't Just Run Them.</span>
+            Data Structures <br />
+            <span className="text-red-600 font-black">Virtual Lab</span>
           </h1>
 
           {/* Subtitle */}
@@ -67,81 +69,32 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
             <Link
               href="/compiler"
-              className="px-6 py-3 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition shadow-red flex items-center gap-2 border border-red-600 group"
+              className="btn btn-outline-danger btn-lg group"
             >
-              <Terminal className="w-4 h-4 text-white" />
+              <Terminal className="w-4 h-4" />
               <span>C Online Compiler</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </Link>
 
             <Link
               href="/experiments"
-              className="px-6 py-3 rounded-xl bg-black text-white text-sm font-bold hover:bg-zinc-800 transition shadow-subtle flex items-center gap-2 border border-black"
+              className="btn btn-outline-dark btn-lg"
             >
-              <Layers className="w-4 h-4 text-white" />
+              <Layers className="w-4 h-4" />
               <span>Explore 10 Experiments</span>
             </Link>
 
             <Link
               href="/dashboard"
-              className="px-6 py-3 rounded-xl border border-border bg-white text-black hover:border-red-300 hover:text-red-600 text-sm font-semibold hover:bg-red-50/50 transition shadow-subtle flex items-center gap-2"
+              className="btn btn-outline-primary btn-lg"
             >
               <LayoutDashboard className="w-4 h-4" />
               <span>Student Dashboard</span>
             </Link>
           </div>
 
-          {/* Interactive Hero Split-Screen Visual Demo Preview */}
-          <div className="w-full max-w-4xl border border-border rounded-xl bg-white shadow-floating overflow-hidden text-left">
-            {/* Window title bar */}
-            <div className="px-4 py-2.5 bg-surface border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-300"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-300"></div>
-                </div>
-                <span className="text-[11px] font-mono font-medium text-muted ml-2">
-                  interactive_learning_demo.c
-                </span>
-              </div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded border border-red-200">
-                Live RAM State Inspection
-              </span>
-            </div>
-
-            {/* Split screen content */}
-            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border font-mono text-xs">
-              {/* Left side: Code */}
-              <div className="p-4 bg-white space-y-1 text-black">
-                <div className="text-muted">// Step 1: Allocate new node in heap memory</div>
-                <div className="bg-red-50 -mx-4 px-4 py-0.5 border-y border-red-200 font-bold text-red-950">
-                  struct Node* temp = (struct Node*)malloc(sizeof(struct Node));
-                </div>
-                <div>temp-&gt;data = 42;</div>
-                <div>temp-&gt;next = head;</div>
-                <div>head = temp;</div>
-              </div>
-
-              {/* Right side: Visual feedback */}
-              <div className="p-4 bg-surface/40 flex flex-col justify-center space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-2.5 bg-white rounded-lg border border-red-200 shadow-subtle text-center min-w-[70px]">
-                    <span className="text-[9px] text-muted uppercase block">Data</span>
-                    <span className="text-sm font-bold text-red-600">42</span>
-                  </div>
-                  <span className="text-muted">&rarr;</span>
-                  <div className="p-2.5 bg-white rounded-lg border border-border shadow-subtle text-center min-w-[70px]">
-                    <span className="text-[9px] text-muted uppercase block">Next</span>
-                    <span className="text-xs font-mono text-black">0x4010</span>
-                  </div>
-                </div>
-                <p className="text-[11px] text-secondary font-sans leading-relaxed">
-                  ✨ <strong>Heap Allocation Active:</strong> Memory of 16 bytes allocated at <code className="text-red-600 font-bold">0x4020</code> and linked into the list.
-                </p>
-              </div>
-            </div>
-          </div>
+          {/* Interactive Beginner Learning Demo with Visualizer */}
+          <InteractiveLearningDemo />
         </div>
       </section>
 

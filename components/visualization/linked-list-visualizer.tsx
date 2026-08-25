@@ -236,7 +236,7 @@ export function LinkedListVisualizer({
 
           <button
             onClick={() => handleInsertHead()}
-            className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition shadow-red"
+            className="btn btn-outline-danger btn-sm"
             title="Insert Node at Head (O(1))"
           >
             <Plus className="w-3 h-3" />
@@ -245,7 +245,7 @@ export function LinkedListVisualizer({
 
           <button
             onClick={() => handleInsertTail()}
-            className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-black text-white hover:bg-zinc-800 transition shadow-subtle"
+            className="btn btn-outline-primary btn-sm"
             title="Insert Node at Tail (O(n))"
           >
             <Plus className="w-3 h-3" />
@@ -255,7 +255,7 @@ export function LinkedListVisualizer({
           <button
             onClick={handleDeleteHead}
             disabled={nodes.length === 0}
-            className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-border bg-white text-black hover:bg-red-50 hover:text-red-600 transition shadow-subtle disabled:opacity-50"
+            className="btn btn-outline-secondary btn-sm"
             title="Delete Head Node (O(1))"
           >
             <Trash2 className="w-3 h-3" />
@@ -265,7 +265,7 @@ export function LinkedListVisualizer({
           <button
             onClick={handleStartTraversal}
             disabled={nodes.length === 0 || traversingIndex !== null}
-            className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-black bg-white text-black hover:bg-black hover:text-white transition shadow-subtle disabled:opacity-50"
+            className="btn btn-outline-success btn-sm"
             title="Step-by-step traverse through nodes"
           >
             <Play className="w-3 h-3 fill-current" />
@@ -274,7 +274,7 @@ export function LinkedListVisualizer({
 
           <button
             onClick={handleReset}
-            className="p-1.5 text-muted hover:text-black rounded-lg border border-border bg-white transition shadow-subtle"
+            className="btn btn-outline-secondary btn-sm"
             title="Reset Linked List"
           >
             <RotateCcw className="w-3.5 h-3.5" />

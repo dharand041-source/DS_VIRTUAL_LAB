@@ -2,7 +2,6 @@
   "/page": "app/page.js",
   "/compiler/page": "app/compiler/page.js",
   "/experiments/page": "app/experiments/page.js",
-  "/experiments/[id]/page": "app/experiments/[id]/page.js",
-  "/leaderboard/page": "app/leaderboard/page.js",
-  "/faculty/page": "app/faculty/page.js"
+  "/faculty/page": "app/faculty/page.js",
+  "/experiments/[id]/page": "app/experiments/[id]/page.js"
 }

@@ -5,6 +5,8 @@ import { ASTProgramState, Experiment } from '@/lib/types';
 import { LinkedListVisualizer } from './linked-list-visualizer';
 import { StackVisualizer } from './stack-visualizer';
 import { ParenthesesVisualizer } from './parentheses-visualizer';
+import { TreeVisualizer } from './tree-visualizer';
+import { GraphVisualizer } from './graph-visualizer';
 import {
   Eye,
   Database,
@@ -130,37 +132,6 @@ export function VisualizerEngine({ experiment, astState, activeLine }: Visualize
     setSortLog('Reset array to unsorted state [64, 25, 12, 22, 11].');
   };
 
-  // ==========================================
-  // 3. BST INTERACTIVE INSERTION & SEARCH
-  // ==========================================
-  const [bstRoot, setBstRoot] = useState<number>(50);
-  const [bstLeft, setBstLeft] = useState<number>(30);
-  const [bstRight, setBstRight] = useState<number>(70);
-  const [bstSearchVal, setBstSearchVal] = useState<string>('30');
-  const [bstActiveNode, setBstActiveNode] = useState<string | null>(null);
-  const [bstLog, setBstLog] = useState<string>('Binary Search Tree: Left < Root < Right hierarchy.');
-
-  const handleBstSearch = () => {
-    const val = parseInt(bstSearchVal, 10);
-    if (isNaN(val)) return;
-
-    setBstActiveNode('root');
-    setBstLog(`🔍 BST Search: Evaluating Root (${bstRoot}) for target ${val}...`);
-
-    setTimeout(() => {
-      if (val === bstRoot) {
-        setBstLog(`🎯 Match found at ROOT node (${bstRoot})!`);
-      } else if (val < bstRoot) {
-        setBstActiveNode('left');
-        setBstLog(`← ${val} < ${bstRoot}: Branched LEFT to Node (${bstLeft}). Target matched!`);
-      } else {
-        setBstActiveNode('right');
-        setBstLog(`→ ${val} > ${bstRoot}: Branched RIGHT to Node (${bstRight}). Target matched!`);
-      }
-      setTimeout(() => setBstActiveNode(null), 2500);
-    }, 800);
-  };
-
   return (
     <div className="w-full h-full flex flex-col bg-white border border-border rounded-xl overflow-hidden shadow-subtle select-none">
       {/* Top Engine Tabs */}
@@ -258,14 +229,14 @@ export function VisualizerEngine({ experiment, astState, activeLine }: Visualize
                     />
                     <button
                       onClick={handleEnqueue}
-                      className="px-3 py-1 text-xs font-bold rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-red transition"
+                      className="btn btn-outline-danger btn-sm font-bold"
                     >
                       + Enqueue (Rear)
                     </button>
                     <button
                       onClick={handleDequeue}
                       disabled={queueItems.length === 0}
-                      className="px-3 py-1 text-xs font-bold rounded-lg bg-black text-white hover:bg-zinc-800 disabled:opacity-50 transition shadow-subtle"
+                      className="btn btn-outline-dark btn-sm font-bold"
                     >
                       - Dequeue (Front)
                     </button>
@@ -342,7 +313,7 @@ export function VisualizerEngine({ experiment, astState, activeLine }: Visualize
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleNextSortStep}
-                      className="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-red transition flex items-center gap-1.5"
+                      className="btn btn-outline-danger btn-sm font-bold"
                     >
                       <span>Next Swap Step</span>
                       <SkipForward className="w-3.5 h-3.5" />
@@ -350,7 +321,7 @@ export function VisualizerEngine({ experiment, astState, activeLine }: Visualize
 
                     <button
                       onClick={handleResetSort}
-                      className="p-1.5 rounded-lg border border-border bg-white text-muted hover:text-black transition"
+                      className="btn btn-outline-secondary btn-sm"
                       title="Reset Array"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -391,121 +362,23 @@ export function VisualizerEngine({ experiment, astState, activeLine }: Visualize
               </div>
             )}
 
-            {/* 7. BINARY SEARCH TREE (BST) HIERARCHY */}
-            {experiment.visualizationType === 'bst' && (
-              <div className="flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-white via-surface-subtle/30 to-surface min-h-[340px]">
-                {/* Search Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-black">BST Node Hierarchy</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface border border-border text-secondary">
-                      Root: {bstRoot}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      type="number"
-                      value={bstSearchVal}
-                      onChange={(e) => setBstSearchVal(e.target.value)}
-                      placeholder="30"
-                      className="w-14 text-xs font-mono font-bold text-black px-2 py-1 bg-white border border-border rounded-lg"
-                    />
-                    <button
-                      onClick={handleBstSearch}
-                      className="px-3 py-1 text-xs font-bold rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-red transition"
-                    >
-                      Search Path (↓)
-                    </button>
-                  </div>
-                </div>
-
-                {/* Tree Visual Structure */}
-                <div className="my-6 flex flex-col items-center gap-4">
-                  {/* Root Node */}
-                  <div
-                    className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-mono font-black text-sm border-2 shadow-floating transition-all duration-300 ${
-                      bstActiveNode === 'root'
-                        ? 'bg-red-600 text-white border-red-600 scale-110 shadow-red ring-4 ring-red-200'
-                        : 'bg-black text-white border-black'
-                    }`}
-                  >
-                    <span>{bstRoot}</span>
-                    <span className="text-[8px] text-zinc-300 font-normal">ROOT</span>
-                  </div>
-
-                  {/* Branches */}
-                  <div className="flex items-center gap-20">
-                    <div
-                      className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center font-mono font-bold text-xs border-2 shadow-subtle transition-all duration-300 ${
-                        bstActiveNode === 'left'
-                          ? 'bg-red-50 text-red-600 border-red-600 scale-110 ring-4 ring-red-200'
-                          : 'bg-white text-black border-border'
-                      }`}
-                    >
-                      <span>{bstLeft}</span>
-                      <span className="text-[8px] text-muted">&lt; Left</span>
-                    </div>
-
-                    <div
-                      className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center font-mono font-bold text-xs border-2 shadow-subtle transition-all duration-300 ${
-                        bstActiveNode === 'right'
-                          ? 'bg-red-50 text-red-600 border-red-600 scale-110 ring-4 ring-red-200'
-                          : 'bg-white text-black border-border'
-                      }`}
-                    >
-                      <span>{bstRight}</span>
-                      <span className="text-[8px] text-muted">Right &gt;</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-xs font-mono text-black bg-surface p-2.5 rounded-xl border border-border flex items-center gap-2">
-                  <Info className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                  <span>{bstLog}</span>
-                </div>
-              </div>
+            {/* 7. BINARY SEARCH TREE (BST) & TREE HIERARCHY WITH FULL POINTER LINKS */}
+            {(experiment.visualizationType === 'bst' ||
+              experiment.category.includes('Tree') ||
+              experiment.category.includes('Hierarchical')) && (
+              <TreeVisualizer activeLine={activeLine} />
             )}
 
-            {/* 8. DIJKSTRA & MST GRAPH TRAVERSAL */}
+            {/* 8. DIJKSTRA, MST & GRAPH TRAVERSAL WITH 2D GEOMETRIC EDGES */}
             {(experiment.visualizationType === 'dijkstra' ||
               experiment.visualizationType === 'kruskal' ||
-              experiment.visualizationType === 'prim') && (
-              <div className="flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-white via-surface-subtle/30 to-surface min-h-[320px]">
-                <div className="border-b border-border pb-3">
-                  <span className="text-xs font-bold text-black">
-                    Graph Vertex Distance Relaxation & Edge Traversal
-                  </span>
-                </div>
-
-                <div className="my-6 grid grid-cols-5 gap-2.5 w-full max-w-lg mx-auto">
-                  {[
-                    { v: 0, d: 0, note: 'Source' },
-                    { v: 1, d: 4, note: 'Edge (0,1)=4' },
-                    { v: 2, d: 12, note: 'Via V1' },
-                    { v: 3, d: 17, note: 'Via V2' },
-                    { v: 4, d: 8, note: 'Edge (0,4)=8' }
-                  ].map((node) => (
-                    <div
-                      key={node.v}
-                      className="p-3 bg-white rounded-2xl border-2 border-black text-center font-mono shadow-subtle hover:border-red-600 hover:scale-105 transition-all"
-                    >
-                      <span className="text-[9px] text-muted block">V[{node.v}]</span>
-                      <span className="text-base font-black text-red-600 block mt-0.5">{node.d}</span>
-                      <span className="text-[8px] text-secondary block mt-1">{node.note}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="text-xs font-mono text-black bg-surface p-2.5 rounded-xl border border-border flex items-center gap-2">
-                  <Info className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                  <span>Greedy Shortest Path: Relaxing adjacent edge weights along optimal paths.</span>
-                </div>
-              </div>
+              experiment.visualizationType === 'prim' ||
+              experiment.category.includes('Graph')) && (
+              <GraphVisualizer activeLine={activeLine} />
             )}
 
             {/* 9. UNIVERSAL DYNAMIC MEMORY BOXES FALLBACK FOR ANY USER PROGRAM */}
-            {experiment.visualizationType === 'none' && (
+            {((experiment.visualizationType as string) === 'none' || (experiment.visualizationType as string) === 'general') && (
               <div className="flex-1 p-6 flex flex-col justify-center items-center gap-4">
                 <span className="text-xs font-bold uppercase tracking-wider text-muted font-mono">
                   Active Runtime Memory Variables & Registers

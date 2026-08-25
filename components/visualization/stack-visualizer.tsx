@@ -160,7 +160,7 @@ export function StackVisualizer({
           <button
             onClick={() => handlePush()}
             disabled={isAnimating || items.length >= maxCapacity}
-            className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition shadow-red"
+            className="btn btn-outline-danger btn-sm font-bold"
             title="Push number box into stack"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -170,7 +170,7 @@ export function StackVisualizer({
           <button
             onClick={handlePop}
             disabled={isAnimating || items.length === 0}
-            className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-black text-white hover:bg-zinc-800 disabled:opacity-50 transition shadow-subtle"
+            className="btn btn-outline-dark btn-sm font-bold"
             title="Pop number box from top of stack"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -179,7 +179,7 @@ export function StackVisualizer({
 
           <button
             onClick={handleReset}
-            className="p-1.5 text-muted hover:text-black rounded-lg border border-border bg-white transition shadow-subtle"
+            className="btn btn-outline-secondary btn-sm"
             title="Reset Stack"
           >
             <RotateCcw className="w-3.5 h-3.5" />

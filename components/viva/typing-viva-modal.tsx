@@ -191,7 +191,7 @@ export function TypingVivaModal({
             </div>
 
             {/* Question Text */}
-            <div className="mb-4">
+            <div className="mb-4 select-none" onCopy={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()}>
               <h4 className="text-sm font-bold text-primary leading-snug">
                 {currentQ.question}
               </h4>
@@ -204,15 +204,17 @@ export function TypingVivaModal({
                 onChange={(e) => setAnswerInput(e.target.value)}
                 onPaste={(e) => {
                   e.preventDefault();
-                  alert('Pasting is restricted in academic viva mode. Please type your answer.');
                 }}
+                onCopy={(e) => e.preventDefault()}
+                onCut={(e) => e.preventDefault()}
+                onContextMenu={(e) => e.preventDefault()}
                 placeholder="Type your answer concisely here..."
                 rows={3}
                 autoFocus
-                className="w-full text-xs p-3 rounded-lg border border-border focus:border-primary focus:outline-none bg-surface-subtle resize-none font-sans"
+                className="w-full text-xs p-3 rounded-lg border border-border focus:border-red-500 focus:outline-hidden bg-surface-subtle resize-none font-sans"
               />
               <div className="flex items-center justify-between text-[11px] text-muted mt-1">
-                <span>Anti-paste active</span>
+                <span className="text-red-600 font-medium">🔒 Anti-AI &amp; Anti-Paste Active</span>
                 <span>Press Submit or wait for timer</span>
               </div>
             </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export function LoadingScreen() {
   const [isVisible, setIsVisible] = useState(true);
@@ -49,8 +50,15 @@ export function LoadingScreen() {
     >
       <div className="flex flex-col items-center text-center max-w-sm px-6">
         {/* Minimal Academic Logo Box */}
-        <div className="relative w-14 h-14 rounded-2xl border border-border bg-surface flex items-center justify-center mb-6 shadow-subtle">
-          <span className="text-xl font-extrabold text-primary">C</span>
+        <div className="relative w-16 h-16 rounded-2xl border border-border bg-white p-2.5 flex items-center justify-center mb-6 shadow-subtle">
+          <Image
+            src="/logo.png"
+            alt="Data Structures Virtual Lab"
+            width={48}
+            height={48}
+            className="w-full h-full object-contain"
+            priority
+          />
           <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-accent-emerald animate-pulse"></div>
         </div>
 

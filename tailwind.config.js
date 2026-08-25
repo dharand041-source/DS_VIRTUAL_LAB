@@ -37,8 +37,14 @@ module.exports = {
         }
       },
       fontFamily: {
-        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
-        mono: ["JetBrains Mono", "Fira Code", "Consolas", "monospace"],
+        sans: ["var(--font-montserrat)", "Montserrat", "sans-serif"],
+        serif: ["'Times New Roman'", "Times", "serif"],
+        times: ["'Times New Roman'", "Times", "serif"],
+        montserrat: ["var(--font-montserrat)", "Montserrat", "sans-serif"],
+        trafalgar: ["'Trafalgar'", "'Cinzel'", "'Times New Roman'", "serif"],
+        numbers: ["'Trafalgar'", "'Cinzel'", "'Times New Roman'", "serif"],
+        symbols: ["'Trafalgar'", "'Times New Roman'", "serif"],
+        mono: ["'JetBrains Mono'", "Consolas", "monospace"],
       },
       boxShadow: {
         subtle: "0 1px 2px 0 rgba(0, 0, 0, 0.03)",

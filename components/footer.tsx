@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ShieldCheck } from 'lucide-react';
 
 export function Footer() {
@@ -8,6 +9,15 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex flex-col items-center md:items-start">
           <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-white border border-border flex items-center justify-center p-0.5 shadow-subtle overflow-hidden">
+              <Image
+                src="/logo.png"
+                alt="Data Structures Virtual Lab"
+                width={20}
+                height={20}
+                className="w-full h-full object-contain"
+              />
+            </div>
             <span className="text-xs font-black text-black">DATA STRUCTURES VIRTUAL LAB</span>
             <span className="text-[10px] font-mono text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-200 font-bold">
               C Implementation

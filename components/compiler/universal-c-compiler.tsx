@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { analyzeCProgramState } from '@/lib/c-ast-interpreter';
 import { ASTProgramState } from '@/lib/types';
 import {
@@ -18,8 +19,14 @@ import {
   Copy,
   Code2,
   Zap,
-  CheckCircle2
+  CheckCircle2,
+  ShieldCheck,
+  ShieldAlert,
+  Lock
 } from 'lucide-react';
+import { BotVerificationModal } from '@/components/lab/bot-verification-modal';
+import { AntiCopyPasteBanner } from '@/components/ui/anti-copy-paste-banner';
+import { triggerTopLoadingBar } from '@/components/ui/top-progress-bar';
 
 // Dynamically import Monaco Editor to avoid SSR issues
 const Editor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
@@ -72,10 +79,21 @@ export function UniversalCCompiler() {
   const [playSpeed, setPlaySpeed] = useState<number>(1000); // ms per line
   const [customInput, setCustomInput] = useState<string>('10 20 30');
   const [showInputDrawer, setShowInputDrawer] = useState<boolean>(false);
-  const [copied, setCopied] = useState<boolean>(false);
+  const [isBotVerified, setIsBotVerified] = useState<boolean>(false);
+  const [showBotModal, setShowBotModal] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'visual' | 'memory' | 'console' | 'explanation'>('console');
+  const [pendingTab, setPendingTab] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [runSuccess, setRunSuccess] = useState<boolean>(false);
+
+  const switchTab = (tab: 'visual' | 'memory' | 'console' | 'explanation') => {
+    if (tab === activeTab || pendingTab) return;
+    setPendingTab(tab);
+    triggerTopLoadingBar(() => {
+      setActiveTab(tab);
+      setPendingTab(null);
+    }, 1800);
+  };
 
   // Compute live AST Program State
   const astState = useMemo<ASTProgramState>(() => {
@@ -106,6 +124,11 @@ export function UniversalCCompiler() {
   }, [isPlaying, totalLines, playSpeed]);
 
   const handleRunCode = () => {
+    if (!isBotVerified) {
+      setShowBotModal(true);
+      return;
+    }
+
     setIsPlaying(false);
     setIsRunning(true);
     // Jump straight to the final execution state and switch to console output
@@ -116,12 +139,6 @@ export function UniversalCCompiler() {
       setRunSuccess(true);
       setTimeout(() => setRunSuccess(false), 2500);
     }, 200);
-  };
-
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleStepNext = () => {
@@ -143,8 +160,14 @@ export function UniversalCCompiler() {
       <div className="border-b border-border bg-white px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-subtle">
         {/* Brand & Engine Identity */}
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xs shadow-subtle">
-            C
+          <div className="w-8 h-8 rounded-lg bg-white border border-border flex items-center justify-center p-1 shadow-subtle overflow-hidden">
+            <Image
+              src="/logo.png"
+              alt="Data Structures Lab"
+              width={28}
+              height={28}
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -161,51 +184,14 @@ export function UniversalCCompiler() {
           </div>
         </div>
 
-        {/* Right: Custom Input & Utilities */}
+        {/* Right: Academic Security Badge */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowInputDrawer(!showInputDrawer)}
-            className={`px-2.5 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition ${
-              showInputDrawer
-                ? 'bg-surface text-primary border-zinc-400 font-bold'
-                : 'border-border bg-white text-secondary hover:bg-surface'
-            }`}
-          >
-            <Terminal className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Custom Input (stdin)</span>
-          </button>
-
-          <button
-            onClick={handleCopyCode}
-            className="px-2.5 py-1.5 rounded-lg border border-border bg-white hover:bg-surface text-secondary text-xs font-semibold flex items-center gap-1.5 transition"
-            title="Copy C Code"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy Code'}</span>
-          </button>
+          <div className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 text-red-700 text-xs font-semibold flex items-center gap-1.5 shadow-subtle">
+            <Lock className="w-3.5 h-3.5 text-red-600" />
+            <span>Anti-AI &amp; Copy-Paste Restricted</span>
+          </div>
         </div>
       </div>
-
-      {/* Stdin Drawer (Collapsible) */}
-      {showInputDrawer && (
-        <div className="bg-surface border-b border-border p-3 px-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in">
-          <div className="flex-1 w-full">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted block mb-1">
-              Standard Input Stream (stdin for scanf / arguments)
-            </span>
-            <input
-              type="text"
-              value={customInput}
-              onChange={(e) => setCustomInput(e.target.value)}
-              placeholder="e.g. 10 20 30"
-              className="w-full font-mono text-xs px-3 py-1.5 bg-white border border-border rounded-lg text-primary focus:outline-hidden focus:ring-1 focus:ring-primary"
-            />
-          </div>
-          <div className="text-[10px] text-muted font-mono shrink-0">
-            Feed test inputs to C programs
-          </div>
-        </div>
-      )}
 
       {/* Primary Toolbar: Run Button & Stepper Controls */}
       <div className="bg-surface/80 border-b border-border px-4 py-2 flex flex-wrap items-center justify-between gap-2">
@@ -214,13 +200,13 @@ export function UniversalCCompiler() {
           <button
             onClick={handleRunCode}
             disabled={isRunning}
-            className="px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-red transition disabled:opacity-50 border border-red-600"
+            className="btn btn-outline-danger font-bold"
             title="Run C Program"
           >
             {isRunning ? (
-              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Play className="w-3.5 h-3.5 fill-current text-white" />
+              <Play className="w-3.5 h-3.5 fill-current" />
             )}
             <span>{isRunning ? 'Compiling...' : 'Run Code'}</span>
           </button>
@@ -228,29 +214,25 @@ export function UniversalCCompiler() {
           {/* Stepper Controls */}
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className={`px-3 py-1.5 rounded-lg border border-border text-xs font-bold flex items-center gap-1.5 transition shadow-subtle ${
-              isPlaying
-                ? 'bg-red-50 text-red-600 border-red-200 font-bold'
-                : 'bg-white text-black hover:bg-surface'
-            }`}
+            className={`btn ${isPlaying ? 'btn-outline-warning' : 'btn-outline-dark'}`}
           >
-            {isPlaying ? <Pause className="w-3.5 h-3.5 text-red-600" /> : <Play className="w-3.5 h-3.5 fill-current text-black" />}
+            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
             <span>{isPlaying ? 'Pause' : 'Auto Play Line-by-Line'}</span>
           </button>
 
           <button
             onClick={handleStepPrev}
             disabled={activeLine <= 1}
-            className="p-1.5 rounded-lg border border-border bg-white hover:bg-surface text-black disabled:opacity-40 transition shadow-subtle"
+            className="btn btn-outline-secondary btn-sm"
             title="Step Previous Line"
           >
-            <SkipBack className="w-4 h-4" />
+            <SkipBack className="w-3.5 h-3.5" />
           </button>
 
           <button
             onClick={handleStepNext}
             disabled={activeLine >= totalLines}
-            className="px-2.5 py-1.5 rounded-lg border border-border bg-white hover:bg-surface text-black text-xs font-semibold flex items-center gap-1 disabled:opacity-40 transition shadow-subtle"
+            className="btn btn-outline-secondary btn-sm font-semibold"
             title="Step Next Line"
           >
             <span>Next Line</span>
@@ -259,10 +241,10 @@ export function UniversalCCompiler() {
 
           <button
             onClick={handleReset}
-            className="p-1.5 rounded-lg border border-border bg-white hover:bg-surface text-muted hover:text-black transition shadow-subtle"
+            className="btn btn-outline-secondary btn-sm"
             title="Reset to Line 1"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
 
           <div className="hidden sm:flex items-center gap-1 ml-2 font-mono text-xs text-muted border-l border-border pl-3">
@@ -309,7 +291,7 @@ export function UniversalCCompiler() {
               2.0x
             </button>
           </div>
-        </div>v>
+        </div>
       </div>
 
       {/* Main Split-Screen Workspace */}
@@ -349,12 +331,20 @@ export function UniversalCCompiler() {
                 lineDecorationsWidth: 10,
                 renderLineHighlight: 'all',
                 automaticLayout: true,
+                contextmenu: false, // Disable right-click copy/paste menu
                 padding: { top: 12, bottom: 12 }
               }}
               onMount={(editor) => {
                 editor.onMouseDown((e) => {
                   if (e.target.position) {
                     setActiveLine(e.target.position.lineNumber);
+                  }
+                });
+                editor.onKeyDown((e) => {
+                  // Block copy/paste shortcuts
+                  if ((e.ctrlKey || e.metaKey) && (e.keyCode === 33 || e.keyCode === 52 || e.keyCode === 54 || e.code === 'KeyC' || e.code === 'KeyV' || e.code === 'KeyX')) {
+                    e.preventDefault();
+                    e.stopPropagation();
                   }
                 });
               }}
@@ -381,82 +371,113 @@ export function UniversalCCompiler() {
           <div className="px-4 py-2 border-b border-border bg-white flex items-center justify-between">
             <div className="flex items-center gap-1 bg-surface-subtle p-0.5 rounded-lg border border-border">
               <button
-                onClick={() => setActiveTab('console')}
+                onClick={() => switchTab('console')}
                 className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition ${
                   activeTab === 'console'
                     ? 'bg-white text-primary shadow-subtle font-bold'
+                    : pendingTab === 'console'
+                    ? 'bg-red-50 text-red-600 font-bold animate-pulse'
                     : 'text-secondary hover:text-primary'
                 }`}
               >
                 <Terminal className="w-3.5 h-3.5 text-accent-emerald" />
-                <span>Console Output</span>
+                <span>{pendingTab === 'console' ? 'Opening Console...' : 'Console Output'}</span>
               </button>
 
               <button
-                onClick={() => setActiveTab('visual')}
+                onClick={() => switchTab('visual')}
                 className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition ${
                   activeTab === 'visual'
                     ? 'bg-white text-primary shadow-subtle font-bold'
+                    : pendingTab === 'visual'
+                    ? 'bg-red-50 text-red-600 font-bold animate-pulse'
                     : 'text-secondary hover:text-primary'
                 }`}
               >
                 <Eye className="w-3.5 h-3.5 text-accent-blue" />
-                <span>Live Visualizer</span>
+                <span>{pendingTab === 'visual' ? 'Opening Visualizer...' : 'Live Visualizer'}</span>
               </button>
 
               <button
-                onClick={() => setActiveTab('memory')}
+                onClick={() => switchTab('memory')}
                 className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition ${
                   activeTab === 'memory'
                     ? 'bg-white text-primary shadow-subtle font-bold'
+                    : pendingTab === 'memory'
+                    ? 'bg-red-50 text-red-600 font-bold animate-pulse'
                     : 'text-secondary hover:text-primary'
                 }`}
               >
                 <Database className="w-3.5 h-3.5 text-accent-amber" />
-                <span>RAM & Stack Table</span>
+                <span>{pendingTab === 'memory' ? 'Opening RAM Table...' : 'RAM & Stack Table'}</span>
               </button>
 
               <button
-                onClick={() => setActiveTab('explanation')}
+                onClick={() => switchTab('explanation')}
                 className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition ${
                   activeTab === 'explanation'
                     ? 'bg-white text-primary shadow-subtle font-bold'
+                    : pendingTab === 'explanation'
+                    ? 'bg-red-50 text-red-600 font-bold animate-pulse'
                     : 'text-secondary hover:text-primary'
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-accent-indigo" />
-                <span>AI Line Inspector</span>
+                <span>{pendingTab === 'explanation' ? 'Opening AI Inspector...' : 'AI Line Inspector'}</span>
               </button>
             </div>
           </div>
 
-          {/* Tab: Console Output Terminal (White Theme with Black Text) */}
+          {/* Tab: Console Output Terminal & Standard Input (White Theme with Black Text) */}
           {activeTab === 'console' && (
-            <div className="flex-1 p-4 overflow-y-auto bg-white text-primary font-mono text-xs flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-2 mb-3 border-b border-border text-[11px] text-muted">
-                  <span className="flex items-center gap-1.5 text-primary font-semibold">
-                    <span className="w-2 h-2 rounded-full bg-accent-emerald animate-pulse"></span>
-                    <span>Standard Output (stdout)</span>
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-surface border border-border text-[10px] font-bold text-primary">
-                    Exit Code: 0
-                  </span>
+            <div className="flex-1 p-4 overflow-y-auto bg-white text-primary font-mono text-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-4">
+                {/* Standard Input (stdin) Section */}
+                <div className="bg-surface/70 border border-border rounded-xl p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold font-mono text-black flex items-center gap-1.5">
+                      <Terminal className="w-3.5 h-3.5 text-red-600" />
+                      <span>Standard Input (stdin for scanf / arguments)</span>
+                    </label>
+                    <span className="text-[10px] text-muted font-mono">
+                      Runtime Stream Input
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    value={customInput}
+                    onChange={(e) => setCustomInput(e.target.value)}
+                    placeholder="e.g. 10 20 30"
+                    className="w-full font-mono text-xs px-3 py-2 bg-white border border-border rounded-lg text-black focus:outline-hidden focus:ring-1 focus:ring-red-500 shadow-xs placeholder:text-muted/60"
+                  />
                 </div>
 
-                <div className="space-y-1.5 bg-surface/50 p-3 rounded-xl border border-border min-h-[220px]">
-                  {astState.consoleOutput.length === 0 ? (
-                    <div className="text-muted italic py-4">
-                      [Program execution sandbox ready. Click "Run Code" or step through lines to generate output.]
-                    </div>
-                  ) : (
-                    astState.consoleOutput.map((out, idx) => (
-                      <div key={idx} className="text-primary font-semibold flex items-center gap-2">
-                        <span className="text-muted text-[10px] select-none">&gt;</span>
-                        <span>{out}</span>
+                {/* Standard Output (stdout) */}
+                <div>
+                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-border text-[11px] text-muted">
+                    <span className="flex items-center gap-1.5 text-primary font-semibold">
+                      <span className="w-2 h-2 rounded-full bg-accent-emerald animate-pulse"></span>
+                      <span>Program Standard Output (stdout)</span>
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-surface border border-border text-[10px] font-bold text-primary">
+                      Exit Code: 0
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5 bg-surface/50 p-3 rounded-xl border border-border min-h-[160px]">
+                    {astState.consoleOutput.length === 0 ? (
+                      <div className="text-muted italic py-4">
+                        [Program execution sandbox ready. Click &quot;Run Code&quot; or step through lines to generate output.]
                       </div>
-                    ))
-                  )}
+                    ) : (
+                      astState.consoleOutput.map((out, idx) => (
+                        <div key={idx} className="text-primary font-semibold flex items-center gap-2">
+                          <span className="text-muted text-[10px] select-none">&gt;</span>
+                          <span>{out}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -778,6 +799,21 @@ export function UniversalCCompiler() {
           )}
         </div>
       </div>
+
+      {/* Human Verification Turnstile Modal */}
+      <BotVerificationModal
+        isOpen={showBotModal}
+        onVerified={() => {
+          setIsBotVerified(true);
+          setShowBotModal(false);
+        }}
+        onCancel={() => setShowBotModal(false)}
+        title="Human Verification: Online C Compiler"
+        subtitle="Anti-AI & Automated Script Protection"
+      />
+
+      {/* Anti-Copy-Paste Security Banner */}
+      <AntiCopyPasteBanner active={true} />
     </div>
   );
 }

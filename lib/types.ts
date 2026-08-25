@@ -355,3 +355,95 @@ export interface EvaluationScheme {
   facultyObservationWeight: number;
   regulation: string; // e.g. "Anna University 2021 Regulation"
 }
+
+// =========================================================================
+// LMS ARCHITECTURAL MODELS
+// =========================================================================
+
+export type LMSStage =
+  | 'aim_theory'
+  | 'algorithm'
+  | 'coding'
+  | 'visualization'
+  | 'practice'
+  | 'assessment'
+  | 'viva'
+  | 'submission'
+  | 'feedback';
+
+export type LMSStageStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+
+export interface StageProgress {
+  stage: LMSStage;
+  name: string;
+  status: LMSStageStatus;
+  completedAt?: string;
+  score?: number;
+  maxScore?: number;
+  meta?: Record<string, any>;
+}
+
+export interface ExperimentProgress {
+  experimentId: string;
+  overallStatus: LMSStageStatus;
+  completionPercentage: number;
+  stages: Record<LMSStage, StageProgress>;
+  lastAccessedStage: LMSStage;
+  lastAccessedAt: string;
+}
+
+export interface Course {
+  id: string;
+  code: string;
+  title: string;
+  regulation: string;
+  department: string;
+  institution: string;
+  description: string;
+  totalExperiments: number;
+  credits: number;
+}
+
+export interface CompletionRule {
+  requireTheory: boolean;
+  requireAlgorithm: boolean;
+  requireCodingTestCases: boolean;
+  requireAssessment: boolean;
+  minAssessmentScorePercent: number;
+  requireViva: boolean;
+  minVivaScorePercent: number;
+  requireSubmission: boolean;
+}
+
+export interface StudentProgressSummary {
+  userId: string;
+  userName: string;
+  email: string;
+  collegeName: string;
+  departmentName: string;
+  year: string;
+  section?: string;
+  isOurCollege: boolean;
+  xp: number;
+  completedExperimentsCount: number;
+  courseCompletionPercentage: number;
+  experimentProgress: Record<string, ExperimentProgress>;
+  pendingSubmissionsCount: number;
+  averageVivaScore: number;
+  averageAssessmentScore: number;
+  needsIntervention: boolean;
+  interventionReason?: string;
+}
+
+export interface LearningRecommendation {
+  id: string;
+  experimentId: string;
+  experimentTitle: string;
+  experimentNumber: number;
+  topic: string;
+  reason: string;
+  priority: 'high' | 'medium' | 'low';
+  type: 'review' | 'practice' | 'viva' | 'next_unit';
+  actionUrl: string;
+}
+

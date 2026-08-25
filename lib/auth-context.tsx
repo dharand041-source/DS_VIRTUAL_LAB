@@ -1,17 +1,28 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserRole } from './types';
-import { SEEDED_USERS, getStoredUser, setStoredUser } from './storage';
+import { User, UserRole, LMSStage, StageProgress, ExperimentProgress } from './types';
+import {
+  SEEDED_USERS,
+  getStoredUser,
+  setStoredUser,
+  getStoredStageProgress,
+  saveStageProgress,
+  getContinueLearningInfo
+} from './storage';
 
 interface AuthContextType {
   user: User;
   setUser: (user: User) => void;
-  switchUserRole: (role: UserRole | 'our-student' | 'other-student' | 'faculty') => void;
+  switchUserRole: (role: UserRole | 'our-student' | 'other-student' | 'faculty' | 'admin') => void;
   addXP: (amount: number, reason?: string) => void;
   markExperimentCompleted: (expId: string) => void;
+  trackStageCompletion: (expId: string, stage: LMSStage, data?: Partial<StageProgress>) => ExperimentProgress;
+  getExperimentStageProgress: (expId: string) => ExperimentProgress;
+  getContinueLearning: () => ReturnType<typeof getContinueLearningInfo>;
   isOurCollegeStudent: boolean;
   isFaculty: boolean;
+  isAdmin: boolean;
   isGuest: boolean;
   canAccessCollegeEvaluation: boolean;
 }
@@ -32,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStoredUser(newUser);
   };
 
-  const switchUserRole = (target: UserRole | 'our-student' | 'other-student' | 'faculty') => {
+  const switchUserRole = (target: UserRole | 'our-student' | 'other-student' | 'faculty' | 'admin') => {
     let targetUser: User;
     if (target === 'our-student' || target === 'student') {
       targetUser = SEEDED_USERS[0];
@@ -40,6 +51,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       targetUser = SEEDED_USERS[1];
     } else if (target === 'faculty') {
       targetUser = SEEDED_USERS[2];
+    } else if (target === 'admin') {
+      targetUser = {
+        ...SEEDED_USERS[2],
+        id: 'user-admin-01',
+        name: 'Dr. K. Rajasekaran (Admin & HOD)',
+        role: 'admin'
+      };
     } else {
       targetUser = {
         ...SEEDED_USERS[1],
@@ -63,10 +81,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const markExperimentCompleted = (expId: string) => {
     setUserState((prev) => {
-      if (prev.completedExperiments.includes(expId)) return prev;
+      const currentList = prev.completedExperiments || [];
+      if (currentList.includes(expId)) return prev;
+      const uniqueList = Array.from(new Set([...currentList, expId]));
       const updated = {
         ...prev,
-        completedExperiments: [...prev.completedExperiments, expId],
+        completedExperiments: uniqueList,
         xp: prev.xp + 100
       };
       setStoredUser(updated);
@@ -74,10 +94,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const trackStageCompletion = (expId: string, stage: LMSStage, data?: Partial<StageProgress>) => {
+    const updatedProgress = saveStageProgress(user.id, expId, stage, data);
+    setUserState(getStoredUser());
+    return updatedProgress;
+  };
+
+  const getExperimentStageProgress = (expId: string) => {
+    return getStoredStageProgress(user.id, expId);
+  };
+
+  const getContinueLearning = () => {
+    return getContinueLearningInfo(user.id);
+  };
+
   const isOurCollegeStudent = user.role === 'student' && user.isOurCollege;
-  const isFaculty = user.role === 'faculty';
+  const isFaculty = user.role === 'faculty' || user.role === 'admin';
+  const isAdmin = user.role === 'admin';
   const isGuest = user.role === 'guest';
-  const canAccessCollegeEvaluation = isOurCollegeStudent || isFaculty;
+  const canAccessCollegeEvaluation = isOurCollegeStudent || isFaculty || isAdmin;
 
   return (
     <AuthContext.Provider
@@ -87,8 +122,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         switchUserRole,
         addXP,
         markExperimentCompleted,
+        trackStageCompletion,
+        getExperimentStageProgress,
+        getContinueLearning,
         isOurCollegeStudent,
         isFaculty,
+        isAdmin,
         isGuest,
         canAccessCollegeEvaluation
       }}

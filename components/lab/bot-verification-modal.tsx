@@ -1,20 +1,22 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShieldCheck, ShieldAlert, CheckCircle, RefreshCw, Lock } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, RefreshCw, Lock, AlertTriangle, Sparkles } from 'lucide-react';
 
 interface BotVerificationModalProps {
   isOpen: boolean;
   onVerified: () => void;
   onCancel?: () => void;
   title?: string;
+  subtitle?: string;
 }
 
 export function BotVerificationModal({
   isOpen,
   onVerified,
   onCancel,
-  title = "Security Verification: Human Check"
+  title = "Academic Integrity: Human Verification",
+  subtitle = "Anti-AI & Automated Proxy Detection"
 }: BotVerificationModalProps) {
   const [verifying, setVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
@@ -28,62 +30,78 @@ export function BotVerificationModal({
       setVerified(true);
       setTimeout(() => {
         onVerified();
-      }, 500);
-    }, 900);
+      }, 400);
+    }, 1000);
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl border border-border shadow-floating max-w-sm w-full p-6 animate-fade-in">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-surface flex items-center justify-center border border-border">
-            <Lock className="w-4 h-4 text-primary" />
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 select-none">
+      <div className="bg-white rounded-2xl border border-border shadow-floating max-w-md w-full p-6 animate-fade-in space-y-4">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
+            <Lock className="w-5 h-5 text-red-600" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-primary">{title}</h3>
-            <p className="text-xs text-muted">Cloudflare Turnstile Verification</p>
+            <h3 className="text-sm font-extrabold text-black tracking-tight">{title}</h3>
+            <p className="text-[11px] text-muted font-mono">{subtitle}</p>
           </div>
         </div>
 
-        <p className="text-xs text-secondary mb-5 leading-relaxed">
-          To maintain laboratory integrity and prevent automated bot execution, please complete the verification below.
-        </p>
+        <div className="p-3 bg-surface rounded-xl border border-border space-y-1 text-xs text-secondary leading-relaxed">
+          <div className="flex items-center gap-1.5 text-black font-bold text-[11px]">
+            <ShieldCheck className="w-4 h-4 text-red-600" />
+            <span>Anti-AI Laboratory Policy:</span>
+          </div>
+          <p className="text-[11px] text-muted">
+            To prevent automated AI assistants (ChatGPT, Copilot proxies) from writing code or taking viva tests, please confirm you are a human learner before accessing the compiler and laboratory tools.
+          </p>
+        </div>
 
-        {/* Turnstile Box */}
-        <div className="p-3 border border-border rounded-lg bg-surface flex items-center justify-between mb-5">
+        {/* Turnstile / Captcha Box */}
+        <div className="p-4 border-2 border-zinc-200 rounded-xl bg-surface/50 flex items-center justify-between hover:border-zinc-300 transition">
           <div className="flex items-center gap-3">
             <button
               onClick={handleVerify}
               disabled={verifying || verified}
-              className={`w-6 h-6 rounded border flex items-center justify-center transition ${
+              className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center transition shadow-xs ${
                 verified
-                  ? 'bg-accent-emerald border-accent-emerald text-white'
+                  ? 'bg-red-600 border-red-600 text-white'
                   : verifying
-                  ? 'border-primary bg-white cursor-wait'
-                  : 'border-zinc-400 bg-white hover:border-primary'
+                  ? 'border-red-600 bg-white cursor-wait'
+                  : 'border-zinc-400 bg-white hover:border-red-600'
               }`}
+              title="Click to verify"
             >
-              {verifying && <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />}
-              {verified && <CheckCircle className="w-4 h-4 fill-current" />}
+              {verifying && <RefreshCw className="w-4 h-4 animate-spin text-red-600" />}
+              {verified && <CheckCircle2 className="w-4 h-4 text-white" />}
             </button>
-            <span className="text-xs font-medium text-primary">
-              {verified ? 'Verification Successful' : verifying ? 'Verifying session...' : "I am not a robot"}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-black cursor-pointer" onClick={!verifying && !verified ? handleVerify : undefined}>
+                {verified ? 'Human Verification Passed' : verifying ? 'Verifying human session...' : "I am not a robot"}
+              </span>
+              <span className="text-[10px] text-muted font-mono">
+                {verified ? 'Integrity token generated' : 'Click checkbox to authenticate'}
+              </span>
+            </div>
           </div>
 
-          <div className="flex flex-col items-end">
-            <ShieldCheck className="w-4 h-4 text-muted" />
-            <span className="text-[9px] text-muted font-mono mt-0.5">Turnstile</span>
+          <div className="flex flex-col items-end shrink-0 pl-2">
+            <div className="flex items-center gap-1 text-[10px] font-bold text-zinc-700">
+              <ShieldCheck className="w-4 h-4 text-red-600" />
+              <span>Turnstile</span>
+            </div>
+            <span className="text-[8px] text-muted font-mono">Privacy &amp; Terms</span>
           </div>
         </div>
 
         {onCancel && !verified && (
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-1">
             <button
               onClick={onCancel}
-              className="text-xs text-muted hover:text-primary transition"
+              className="text-xs font-semibold text-muted hover:text-black transition px-3 py-1.5"
             >
-              Cancel
+              Cancel &amp; Return
             </button>
           </div>
         )}

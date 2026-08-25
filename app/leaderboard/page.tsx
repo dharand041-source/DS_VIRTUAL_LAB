@@ -18,15 +18,43 @@ import {
   Info,
   ArrowLeft
 } from 'lucide-react';
+import { triggerTopLoadingBar } from '@/components/ui/top-progress-bar';
 
 export default function LeaderboardPage() {
   const { user } = useAuth();
   const [boardType, setBoardType] = useState<'college' | 'global'>('college');
+  const [pendingBoardType, setPendingBoardType] = useState<'college' | 'global' | null>(null);
 
-  const collegeList = SEEDED_COLLEGE_LEADERBOARD; // Top 5
-  const globalList = SEEDED_GLOBAL_LEADERBOARD; // Top 10
+  const switchBoard = (type: 'college' | 'global') => {
+    if (type === boardType || pendingBoardType) return;
+    setPendingBoardType(type);
+    triggerTopLoadingBar(() => {
+      setBoardType(type);
+      setPendingBoardType(null);
+    }, 1800);
+  };
 
-  const activeList = boardType === 'college' ? collegeList : globalList;
+  // Strictly deduplicated and ranked active leaderboard dataset
+  const activeList = React.useMemo(() => {
+    const rawList = boardType === 'college' ? SEEDED_COLLEGE_LEADERBOARD : SEEDED_GLOBAL_LEADERBOARD;
+    const seenIds = new Set<string>();
+    const seenNames = new Set<string>();
+    const result: typeof rawList = [];
+
+    for (const entry of rawList) {
+      const normalizedName = entry.name.replace(' (You)', '').trim().toLowerCase();
+      if (!seenIds.has(entry.userId) && !seenNames.has(normalizedName)) {
+        seenIds.add(entry.userId);
+        seenNames.add(normalizedName);
+        result.push(entry);
+      }
+    }
+
+    return result.map((entry, index) => ({
+      ...entry,
+      rank: index + 1
+    }));
+  }, [boardType]);
 
   return (
     <div className="flex-1 bg-surface-subtle py-8 px-4 sm:px-6 select-none">
@@ -59,27 +87,31 @@ export default function LeaderboardPage() {
         <div className="flex items-center justify-between">
           <div className="flex bg-white p-1 rounded-xl border border-border shadow-subtle gap-1">
             <button
-              onClick={() => setBoardType('college')}
+              onClick={() => switchBoard('college')}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                 boardType === 'college'
                   ? 'bg-red-600 text-white shadow-red'
+                  : pendingBoardType === 'college'
+                  ? 'bg-red-50 text-red-600 font-bold animate-pulse'
                   : 'text-secondary hover:text-black hover:bg-surface'
               }`}
             >
               <Medal className="w-3.5 h-3.5" />
-              <span>Department Standings (AI&DS)</span>
+              <span>{pendingBoardType === 'college' ? 'Loading Department...' : 'Department Standings (AI&DS)'}</span>
             </button>
 
             <button
-              onClick={() => setBoardType('global')}
+              onClick={() => switchBoard('global')}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                 boardType === 'global'
                   ? 'bg-black text-white shadow-subtle'
+                  : pendingBoardType === 'global'
+                  ? 'bg-red-50 text-red-600 font-bold animate-pulse'
                   : 'text-secondary hover:text-black hover:bg-surface'
               }`}
             >
               <Trophy className="w-3.5 h-3.5" />
-              <span>Global Standings (All Colleges)</span>
+              <span>{pendingBoardType === 'global' ? 'Loading Global...' : 'Global Standings (All Colleges)'}</span>
             </button>
           </div>
 
@@ -143,7 +175,7 @@ export default function LeaderboardPage() {
                         )}
                       </div>
                       <span className="text-[11px] text-secondary font-mono">
-                        {entry.college} &bull; {entry.department}
+                        {entry.collegeName} &bull; {entry.isOurCollege ? 'AI & DS' : 'Computing Sciences'}
                       </span>
                     </div>
                   </div>
@@ -154,7 +186,7 @@ export default function LeaderboardPage() {
                       {entry.xp} XP
                     </div>
                     <span className="text-[10px] font-mono text-muted">
-                      {entry.completedCount} Exps Done
+                      {entry.experimentsCompleted} Exps Done
                     </span>
                   </div>
                 </div>

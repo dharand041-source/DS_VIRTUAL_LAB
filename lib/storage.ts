@@ -1,5 +1,19 @@
-import { User, Submission, LeaderboardEntry, EvaluationScheme, StudentFeedback } from './types';
-import { DEFAULT_EVALUATION_SCHEME } from './syllabus-data';
+import {
+  User,
+  Submission,
+  LeaderboardEntry,
+  EvaluationScheme,
+  StudentFeedback,
+  Course,
+  CompletionRule,
+  LMSStage,
+  LMSStageStatus,
+  StageProgress,
+  ExperimentProgress,
+  StudentProgressSummary,
+  LearningRecommendation
+} from './types';
+import { DEFAULT_EVALUATION_SCHEME, SYLLABUS_EXPERIMENTS } from './syllabus-data';
 
 export const SEEDED_USERS: User[] = [
   {
@@ -227,6 +241,9 @@ export function getStoredUser(): User {
           parsed.collegeName = parsed.collegeName.replace('Department of Computer Science & Engineering', 'Department of Artificial Intelligence & Data Science');
         }
       }
+      if (parsed && parsed.completedExperiments && Array.isArray(parsed.completedExperiments)) {
+        parsed.completedExperiments = Array.from(new Set(parsed.completedExperiments));
+      }
       return parsed;
     } catch {
       // ignore
@@ -237,6 +254,9 @@ export function getStoredUser(): User {
 
 export function setStoredUser(user: User): void {
   if (typeof window !== 'undefined') {
+    if (user.completedExperiments && Array.isArray(user.completedExperiments)) {
+      user.completedExperiments = Array.from(new Set(user.completedExperiments));
+    }
     localStorage.setItem('ds_current_user', JSON.stringify(user));
   }
 }
@@ -253,8 +273,10 @@ export function markExperimentCompleted(expId: string): void {
   if (typeof window === 'undefined') return;
   const user = getStoredUser();
   if (!user.completedExperiments) user.completedExperiments = [];
-  if (!user.completedExperiments.includes(expId)) {
-    user.completedExperiments.push(expId);
+  const uniqueSet = new Set(user.completedExperiments);
+  if (!uniqueSet.has(expId)) {
+    uniqueSet.add(expId);
+    user.completedExperiments = Array.from(uniqueSet);
     user.xp = (user.xp || 0) + 50;
     setStoredUser(user);
   }
@@ -309,3 +331,435 @@ export function saveFeedback(fb: StudentFeedback): void {
     awardXP(10);
   }
 }
+
+// =========================================================================
+// LMS ARCHITECTURAL PERSISTENCE & DATA MANAGEMENT
+// =========================================================================
+
+export const DEFAULT_LMS_COURSE: Course = {
+  id: "course-ds-lab-2021",
+  code: "N21UIT307",
+  title: "Data Structures Laboratory",
+  regulation: "Anna University Regulation 2021",
+  department: "Department of Artificial Intelligence & Data Science",
+  institution: "Department of AI&DS, Our College",
+  description: "Practical implementation of linear & non-linear data structures, trees, graph algorithms, and sorting techniques in C with live AST memory visualization and typing viva assessment.",
+  totalExperiments: 10,
+  credits: 2
+};
+
+export const DEFAULT_COMPLETION_RULES: CompletionRule = {
+  requireTheory: true,
+  requireAlgorithm: true,
+  requireCodingTestCases: true,
+  requireAssessment: true,
+  minAssessmentScorePercent: 60,
+  requireViva: true,
+  minVivaScorePercent: 60,
+  requireSubmission: true
+};
+
+export const LMS_STAGE_ORDER: LMSStage[] = [
+  'aim_theory',
+  'algorithm',
+  'coding',
+  'visualization',
+  'practice',
+  'assessment',
+  'viva',
+  'submission',
+  'feedback'
+];
+
+export const LMS_STAGE_METADATA: Record<LMSStage, { name: string; description: string; xpAward: number }> = {
+  aim_theory: { name: "Aim & Theory", description: "Understand data structure definitions and memory models", xpAward: 10 },
+  algorithm: { name: "Algorithmic Steps", description: "Step-by-step procedural logic and pseudocode", xpAward: 10 },
+  coding: { name: "C Program Implementation", description: "Write and synchronize C code in Monaco editor", xpAward: 20 },
+  visualization: { name: "Live Memory Visualizer", description: "Inspect real-time pointer arrows and RAM states", xpAward: 20 },
+  practice: { name: "Coding Practice & Tests", description: "Run sandbox test cases against boundary conditions", xpAward: 30 },
+  assessment: { name: "Concept Assessment", description: "Evaluate output prediction, complexity, and bug fixing", xpAward: 30 },
+  viva: { name: "10-Second Typing Viva", description: "Timed viva voce answering under laboratory conditions", xpAward: 50 },
+  submission: { name: "Laboratory Submission", description: "Submit lab records and code for faculty evaluation", xpAward: 40 },
+  feedback: { name: "Student Feedback", description: "Provide pedagogical reflection for continuous improvement", xpAward: 10 }
+};
+
+export function createDefaultExperimentProgress(expId: string): ExperimentProgress {
+  const stages: Record<LMSStage, StageProgress> = {} as any;
+  for (const s of LMS_STAGE_ORDER) {
+    stages[s] = {
+      stage: s,
+      name: LMS_STAGE_METADATA[s].name,
+      status: 'NOT_STARTED'
+    };
+  }
+  return {
+    experimentId: expId,
+    overallStatus: 'NOT_STARTED',
+    completionPercentage: 0,
+    stages,
+    lastAccessedStage: 'aim_theory',
+    lastAccessedAt: new Date().toISOString()
+  };
+}
+
+export function getStoredStageProgress(userId: string, expId: string): ExperimentProgress {
+  if (typeof window === 'undefined') {
+    const p = createDefaultExperimentProgress(expId);
+    if (expId === 'exp-01-simple-c-programs' || expId === 'exp-02-linked-list-adt') {
+      p.overallStatus = 'COMPLETED';
+      p.completionPercentage = 100;
+      for (const s of LMS_STAGE_ORDER) {
+        p.stages[s].status = 'COMPLETED';
+      }
+    } else if (expId === 'exp-03-stack-implementation') {
+      p.overallStatus = 'IN_PROGRESS';
+      p.completionPercentage = 55;
+      p.stages.aim_theory.status = 'COMPLETED';
+      p.stages.algorithm.status = 'COMPLETED';
+      p.stages.coding.status = 'COMPLETED';
+      p.stages.visualization.status = 'COMPLETED';
+      p.stages.practice.status = 'IN_PROGRESS';
+      p.lastAccessedStage = 'practice';
+    }
+    return p;
+  }
+
+  const key = `lms_progress_${userId}_${expId}`;
+  const stored = localStorage.getItem(key);
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      // ignore
+    }
+  }
+
+  // Generate sensible initial progress based on user's completed experiments
+  const user = getStoredUser();
+  const isCompleted = user.completedExperiments?.includes(expId);
+  const p = createDefaultExperimentProgress(expId);
+
+  if (isCompleted) {
+    p.overallStatus = 'COMPLETED';
+    p.completionPercentage = 100;
+    for (const s of LMS_STAGE_ORDER) {
+      p.stages[s].status = 'COMPLETED';
+    }
+  } else if (expId === 'exp-03-stack-implementation' && userId === 'user-our-student-01') {
+    p.overallStatus = 'IN_PROGRESS';
+    p.completionPercentage = 55;
+    p.stages.aim_theory.status = 'COMPLETED';
+    p.stages.algorithm.status = 'COMPLETED';
+    p.stages.coding.status = 'COMPLETED';
+    p.stages.visualization.status = 'COMPLETED';
+    p.stages.practice.status = 'IN_PROGRESS';
+    p.lastAccessedStage = 'practice';
+  }
+
+  return p;
+}
+
+export function saveStageProgress(
+  userId: string,
+  expId: string,
+  stage: LMSStage,
+  data?: Partial<StageProgress>
+): ExperimentProgress {
+  const current = getStoredStageProgress(userId, expId);
+  current.stages[stage] = {
+    ...current.stages[stage],
+    status: 'COMPLETED',
+    completedAt: new Date().toISOString(),
+    ...data
+  };
+
+  // Calculate completion percentage
+  const completedStagesCount = LMS_STAGE_ORDER.filter(s => current.stages[s].status === 'COMPLETED').length;
+  current.completionPercentage = Math.round((completedStagesCount / LMS_STAGE_ORDER.length) * 100);
+
+  // Check if fully completed
+  if (completedStagesCount === LMS_STAGE_ORDER.length) {
+    current.overallStatus = 'COMPLETED';
+    markExperimentCompleted(expId);
+  } else if (completedStagesCount > 0) {
+    current.overallStatus = 'IN_PROGRESS';
+  }
+
+  // Update last accessed
+  current.lastAccessedStage = stage;
+  current.lastAccessedAt = new Date().toISOString();
+
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(`lms_progress_${userId}_${expId}`, JSON.stringify(current));
+    const award = LMS_STAGE_METADATA[stage]?.xpAward || 10;
+    awardXP(award);
+  }
+
+  return current;
+}
+
+export function getContinueLearningInfo(userId: string): {
+  experimentId: string;
+  experimentTitle: string;
+  experimentNumber: number;
+  activeStage: LMSStage;
+  activeStageName: string;
+  completionPercentage: number;
+  stagesStatus: Record<LMSStage, LMSStageStatus>;
+} {
+  const user = getStoredUser();
+
+  // Find first experiment that is not 100% complete
+  for (const exp of SYLLABUS_EXPERIMENTS) {
+    const progress = getStoredStageProgress(userId, exp.id);
+    if (progress.overallStatus !== 'COMPLETED' || progress.completionPercentage < 100) {
+      // Find first incomplete stage
+      let nextStage: LMSStage = 'aim_theory';
+      for (const s of LMS_STAGE_ORDER) {
+        if (progress.stages[s].status !== 'COMPLETED') {
+          nextStage = s;
+          break;
+        }
+      }
+
+      const stagesStatus: Record<LMSStage, LMSStageStatus> = {} as any;
+      for (const s of LMS_STAGE_ORDER) {
+        stagesStatus[s] = progress.stages[s].status;
+      }
+
+      return {
+        experimentId: exp.id,
+        experimentTitle: exp.title,
+        experimentNumber: exp.expNumber,
+        activeStage: nextStage,
+        activeStageName: LMS_STAGE_METADATA[nextStage]?.name || 'Introduction',
+        completionPercentage: progress.completionPercentage,
+        stagesStatus
+      };
+    }
+  }
+
+  // If all completed, return first experiment
+  const exp0 = SYLLABUS_EXPERIMENTS[0];
+  const progress0 = getStoredStageProgress(userId, exp0.id);
+  const stagesStatus: Record<LMSStage, LMSStageStatus> = {} as any;
+  for (const s of LMS_STAGE_ORDER) {
+    stagesStatus[s] = progress0.stages[s].status;
+  }
+
+  return {
+    experimentId: exp0.id,
+    experimentTitle: exp0.title,
+    experimentNumber: exp0.expNumber,
+    activeStage: 'aim_theory',
+    activeStageName: 'Aim & Theory',
+    completionPercentage: 100,
+    stagesStatus
+  };
+}
+
+export function getStoredCompletionRules(): CompletionRule {
+  if (typeof window === 'undefined') return DEFAULT_COMPLETION_RULES;
+  const stored = localStorage.getItem('ds_lms_completion_rules');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      // ignore
+    }
+  }
+  return DEFAULT_COMPLETION_RULES;
+}
+
+export function saveCompletionRules(rules: CompletionRule): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('ds_lms_completion_rules', JSON.stringify(rules));
+  }
+}
+
+export const SEEDED_STUDENT_SUMMARIES: StudentProgressSummary[] = [
+  {
+    userId: "user-our-student-01",
+    userName: "Aarav Sharma",
+    email: "aarav.aids@ourcollege.edu.in",
+    collegeName: "Department of AI&DS, Our College",
+    departmentName: "Artificial Intelligence & Data Science",
+    year: "II Year / III Sem",
+    section: "AI&DS-A",
+    isOurCollege: true,
+    xp: 540,
+    completedExperimentsCount: 3,
+    courseCompletionPercentage: 35,
+    pendingSubmissionsCount: 0,
+    averageVivaScore: 14,
+    averageAssessmentScore: 18,
+    needsIntervention: false,
+    experimentProgress: {}
+  },
+  {
+    userId: "u-col-1",
+    userName: "Siddharth Verma",
+    email: "siddharth.aids@ourcollege.edu.in",
+    collegeName: "Department of AI&DS, Our College",
+    departmentName: "Artificial Intelligence & Data Science",
+    year: "II Year / III Sem",
+    section: "AI&DS-A",
+    isOurCollege: true,
+    xp: 920,
+    completedExperimentsCount: 6,
+    courseCompletionPercentage: 68,
+    pendingSubmissionsCount: 0,
+    averageVivaScore: 15,
+    averageAssessmentScore: 19,
+    needsIntervention: false,
+    experimentProgress: {}
+  },
+  {
+    userId: "u-col-2",
+    userName: "Deepika Raman",
+    email: "deepika.aids@ourcollege.edu.in",
+    collegeName: "Department of AI&DS, Our College",
+    departmentName: "Artificial Intelligence & Data Science",
+    year: "II Year / III Sem",
+    section: "AI&DS-B",
+    isOurCollege: true,
+    xp: 810,
+    completedExperimentsCount: 5,
+    courseCompletionPercentage: 54,
+    pendingSubmissionsCount: 1,
+    averageVivaScore: 14,
+    averageAssessmentScore: 18,
+    needsIntervention: false,
+    experimentProgress: {}
+  },
+  {
+    userId: "u-col-3",
+    userName: "Karthik Raja",
+    email: "karthik.aids@ourcollege.edu.in",
+    collegeName: "Department of AI&DS, Our College",
+    departmentName: "Artificial Intelligence & Data Science",
+    year: "II Year / III Sem",
+    section: "AI&DS-A",
+    isOurCollege: true,
+    xp: 690,
+    completedExperimentsCount: 4,
+    courseCompletionPercentage: 42,
+    pendingSubmissionsCount: 0,
+    averageVivaScore: 13,
+    averageAssessmentScore: 17,
+    needsIntervention: false,
+    experimentProgress: {}
+  },
+  {
+    userId: "u-col-5",
+    userName: "Ananya Iyer",
+    email: "ananya.aids@ourcollege.edu.in",
+    collegeName: "Department of AI&DS, Our College",
+    departmentName: "Artificial Intelligence & Data Science",
+    year: "II Year / III Sem",
+    section: "AI&DS-B",
+    isOurCollege: true,
+    xp: 480,
+    completedExperimentsCount: 3,
+    courseCompletionPercentage: 31,
+    pendingSubmissionsCount: 0,
+    averageVivaScore: 12,
+    averageAssessmentScore: 16,
+    needsIntervention: true,
+    interventionReason: "Struggling with Pointer Dereferencing & Dynamic Memory Freeing in BST",
+    experimentProgress: {}
+  },
+  {
+    userId: "user-other-student-02",
+    userName: "Priya Nair",
+    email: "priya.nair@nationaltech.ac.in",
+    collegeName: "National Institute of Technology",
+    departmentName: "Information Technology",
+    year: "I Year / II Sem",
+    isOurCollege: false,
+    xp: 320,
+    completedExperimentsCount: 1,
+    courseCompletionPercentage: 15,
+    pendingSubmissionsCount: 0,
+    averageVivaScore: 12,
+    averageAssessmentScore: 15,
+    needsIntervention: false,
+    experimentProgress: {}
+  }
+];
+
+export function getEnrolledStudentsProgress(): StudentProgressSummary[] {
+  const uniqueMap = new Map<string, StudentProgressSummary>();
+  for (const student of SEEDED_STUDENT_SUMMARIES) {
+    if (!uniqueMap.has(student.userId)) {
+      uniqueMap.set(student.userId, student);
+    }
+  }
+  return Array.from(uniqueMap.values());
+}
+
+export function getPersonalizedRecommendations(userId: string): LearningRecommendation[] {
+  const user = getStoredUser();
+  const completed = user.completedExperiments || [];
+
+  const recs: LearningRecommendation[] = [];
+
+  if (!completed.includes('exp-02-linked-list-adt')) {
+    recs.push({
+      id: 'rec-1',
+      experimentId: 'exp-02-linked-list-adt',
+      experimentTitle: 'Linked List Implementation of List ADT',
+      experimentNumber: 2,
+      topic: 'Pointer Manipulation & malloc()',
+      reason: 'Foundational for all subsequent non-linear and graph data structures in Course N21UIT307.',
+      priority: 'high',
+      type: 'practice',
+      actionUrl: '/experiments/exp-02-linked-list-adt'
+    });
+  }
+
+  if (!completed.includes('exp-03-stack-implementation')) {
+    recs.push({
+      id: 'rec-2',
+      experimentId: 'exp-03-stack-implementation',
+      experimentTitle: 'Stack Implementation (Array & Linked List)',
+      experimentNumber: 3,
+      topic: 'LIFO Boundary Check & Top Pointer',
+      reason: 'Essential prerequisite for Expression Evaluation and Graph DFS traversal.',
+      priority: 'high',
+      type: 'review',
+      actionUrl: '/experiments/exp-03-stack-implementation'
+    });
+  }
+
+  if (!completed.includes('exp-06-binary-search-tree')) {
+    recs.push({
+      id: 'rec-3',
+      experimentId: 'exp-06-binary-search-tree',
+      experimentTitle: 'Binary Search Tree ADT',
+      experimentNumber: 6,
+      topic: 'Recursive Tree Traversal & Memory Deallocation',
+      reason: 'Practice Inorder, Preorder, and Postorder recursive traversal with memory validation.',
+      priority: 'medium',
+      type: 'next_unit',
+      actionUrl: '/experiments/exp-06-binary-search-tree'
+    });
+  }
+
+  if (recs.length === 0) {
+    recs.push({
+      id: 'rec-capstone',
+      experimentId: 'exp-10-model-lab-mini-project',
+      experimentTitle: 'Model Lab Mini-Project & Capstone',
+      experimentNumber: 10,
+      topic: 'Integrated Data Structures Capstone',
+      reason: 'Combine Hash Tables, Queues, and Graph algorithms to complete the curriculum.',
+      priority: 'medium',
+      type: 'next_unit',
+      actionUrl: '/experiments/exp-10-model-lab-mini-project'
+    });
+  }
+
+  return recs;
+}
+

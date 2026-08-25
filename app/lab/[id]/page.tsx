@@ -16,6 +16,7 @@ import { OutputConsole } from '@/components/lab/output-console';
 import { BotVerificationModal } from '@/components/lab/bot-verification-modal';
 import { TypingVivaModal } from '@/components/viva/typing-viva-modal';
 import { AssessmentRunner } from '@/components/assessment/assessment-runner';
+import { AntiCopyPasteBanner } from '@/components/ui/anti-copy-paste-banner';
 import {
   Play,
   Award,
@@ -32,13 +33,14 @@ import confetti from 'canvas-confetti';
 export default function InteractiveLabPage() {
   const params = useParams();
   const expId = params?.id as string;
-  const { user, addXP, markExperimentCompleted, canAccessCollegeEvaluation } = useAuth();
+  const { user, addXP, markExperimentCompleted, trackStageCompletion, canAccessCollegeEvaluation } = useAuth();
 
   const experiment = SYLLABUS_EXPERIMENTS.find(e => e.id === expId) || SYLLABUS_EXPERIMENTS[0];
 
   const [code, setCode] = useState<string>(experiment.defaultCode);
   const [activeLine, setActiveLine] = useState<number>(1);
   const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [customInput, setCustomInput] = useState<string>('');
   const [executionResult, setExecutionResult] = useState<SandboxExecutionResult | null>(null);
 
   // Modals
@@ -65,13 +67,16 @@ export default function InteractiveLabPage() {
   // Handle Run
   const handleRunProgram = async () => {
     setIsRunning(true);
-    const result = await executeCSandbox(code, experiment.testCases);
+    const result = await executeCSandbox(code, experiment.testCases, customInput);
     setExecutionResult(result);
     setIsRunning(false);
 
     if (result.success) {
       addXP(50, 'Passed Sandbox Test Cases');
       markExperimentCompleted(experiment.id);
+      trackStageCompletion(experiment.id, 'coding');
+      trackStageCompletion(experiment.id, 'visualization');
+      trackStageCompletion(experiment.id, 'practice');
     }
   };
 
@@ -83,10 +88,14 @@ export default function InteractiveLabPage() {
 
   const handleVivaComplete = (attempts: any[]) => {
     addXP(100, 'Completed Typing Viva');
+    markExperimentCompleted(experiment.id);
+    trackStageCompletion(experiment.id, 'viva');
   };
 
   const handleAssessmentComplete = (score: number, maxScore: number) => {
     addXP(score * 10, 'Completed Assessment');
+    markExperimentCompleted(experiment.id);
+    trackStageCompletion(experiment.id, 'assessment', { score });
   };
 
   const handleSubmitToFaculty = () => {
@@ -120,6 +129,7 @@ export default function InteractiveLabPage() {
     };
 
     saveSubmission(sub);
+    trackStageCompletion(experiment.id, 'submission');
     setSubmissionFeedback('Submission successfully logged for Faculty Review!');
     confetti({ particleCount: 40, spread: 50 });
     setTimeout(() => setSubmissionFeedback(null), 4000);
@@ -236,6 +246,8 @@ export default function InteractiveLabPage() {
               activeLine={activeLine}
               starterCode={experiment.starterCode}
               solutionCode={experiment.defaultCode}
+              customInput={customInput}
+              onCustomInputChange={setCustomInput}
             />
           </div>
 
@@ -294,6 +306,9 @@ export default function InteractiveLabPage() {
         experimentTitle={experiment.title}
         onComplete={handleAssessmentComplete}
       />
+
+      {/* Anti-Copy-Paste Security Banner */}
+      <AntiCopyPasteBanner active={true} />
     </div>
   );
 }

@@ -1,9 +1,7 @@
-'use client';
-
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import type { OnMount } from '@monaco-editor/react';
-import { Play, RotateCcw, FileCode, Loader2, Sparkles } from 'lucide-react';
+import { Play, RotateCcw, FileCode, Loader2, Sparkles, Terminal } from 'lucide-react';
 
 // Dynamically import Monaco Editor without SSR to prevent vendor-chunk load errors
 const Editor = dynamic(() => import('@monaco-editor/react'), {
@@ -26,6 +24,8 @@ interface CodeEditorPanelProps {
   activeLine?: number;
   starterCode?: string;
   solutionCode?: string;
+  customInput?: string;
+  onCustomInputChange?: (value: string) => void;
 }
 
 export function CodeEditorPanel({
@@ -37,10 +37,17 @@ export function CodeEditorPanel({
   isRunning,
   activeLine = 1,
   starterCode,
-  solutionCode
+  solutionCode,
+  customInput = '',
+  onCustomInputChange
 }: CodeEditorPanelProps) {
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
+  const [showInputDrawer, setShowInputDrawer] = useState<boolean>(false);
+
+  const hasScanf = useMemo(() => {
+    return /scanf\s*\(|getchar\s*\(|gets\s*\(|fgets\s*\(|cin\s*>>/i.test(code);
+  }, [code]);
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -56,6 +63,14 @@ export function CodeEditorPanel({
       const pos = editor.getPosition();
       if (pos) {
         onCursorLineChange(pos.lineNumber);
+      }
+    });
+
+    // Intercept copy-paste keyboard shortcuts inside Monaco
+    editor.onKeyDown((e: any) => {
+      if ((e.ctrlKey || e.metaKey) && (e.keyCode === 33 || e.keyCode === 52 || e.keyCode === 54 || e.code === 'KeyC' || e.code === 'KeyV' || e.code === 'KeyX')) {
+        e.preventDefault();
+        e.stopPropagation();
       }
     });
 
@@ -87,17 +102,32 @@ export function CodeEditorPanel({
   return (
     <div className="w-full h-full flex flex-col bg-surface border border-border rounded-lg overflow-hidden shadow-subtle">
       {/* Editor Header Toolbar */}
-      <div className="px-4 py-2.5 border-b border-border bg-white flex items-center justify-between gap-2">
+      <div className="px-4 py-2.5 border-b border-border bg-white flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <FileCode className="w-4 h-4 text-primary" />
           <span className="text-xs font-bold text-primary font-mono">program.c</span>
           <span className="text-[11px] font-mono text-primary font-semibold bg-surface px-2 py-0.5 rounded border border-border flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-accent-indigo animate-pulse" />
-            <span>AI Tracking Line {activeLine}</span>
+            <span>Line {activeLine}</span>
           </span>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Custom Input Toggle */}
+          <button
+            onClick={() => setShowInputDrawer(!showInputDrawer)}
+            className={`text-xs px-2.5 py-1 rounded-md border flex items-center gap-1.5 font-mono transition ${
+              showInputDrawer || hasScanf
+                ? 'bg-red-50 text-red-700 border-red-200'
+                : 'bg-white text-muted hover:text-black border-border'
+            }`}
+            title="Toggle Standard Input (stdin)"
+          >
+            <Terminal className="w-3.5 h-3.5" />
+            <span>Input (stdin)</span>
+            {hasScanf && <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />}
+          </button>
+
           {starterCode && (
             <button
               onClick={() => onChange(starterCode)}
@@ -138,7 +168,7 @@ export function CodeEditorPanel({
       </div>
 
       {/* Monaco Editor Canvas */}
-      <div className="flex-1 min-h-[300px]">
+      <div className="flex-1 min-h-[260px]">
         <Editor
           height="100%"
           defaultLanguage="c"
@@ -158,6 +188,7 @@ export function CodeEditorPanel({
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
             automaticLayout: true,
+            contextmenu: false, // Security: Disable contextmenu copy-paste
             tabSize: 4,
             cursorBlinking: 'smooth',
             lineDecorationsWidth: 10,
@@ -165,6 +196,27 @@ export function CodeEditorPanel({
           }}
         />
       </div>
+
+      {/* Custom Standard Input Drawer */}
+      {(showInputDrawer || hasScanf) && onCustomInputChange && (
+        <div className="p-2.5 bg-surface border-t border-border space-y-1 animate-fade-in">
+          <div className="flex items-center justify-between text-[10px] font-mono">
+            <span className="font-bold text-black flex items-center gap-1">
+              <Terminal className="w-3 h-3 text-red-600" /> Standard Input (stdin):
+            </span>
+            <span className="text-muted">
+              {hasScanf ? 'scanf() detected' : 'Optional Arguments'}
+            </span>
+          </div>
+          <textarea
+            rows={2}
+            value={customInput}
+            onChange={(e) => onCustomInputChange(e.target.value)}
+            placeholder="Enter input values separated by spaces or newlines..."
+            className="w-full text-xs font-mono p-2 bg-white border border-border rounded text-black focus:ring-1 focus:ring-red-500 focus:outline-hidden"
+          />
+        </div>
+      )}
     </div>
   );
 }
