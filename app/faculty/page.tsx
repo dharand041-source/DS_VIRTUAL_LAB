@@ -601,7 +601,7 @@ export default function FacultyDashboardPage() {
               {showAISummary && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-border animate-fade-in">
                   <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200">
-                    <span className="text-xs font-bold text-accent-emerald block mb-1 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-accent-emerald mb-1 flex items-center gap-1.5">
                       <Check className="w-3.5 h-3.5" /> Most Common Positive Points
                     </span>
                     <p className="text-xs text-emerald-950 leading-relaxed">
@@ -610,7 +610,7 @@ export default function FacultyDashboardPage() {
                   </div>
 
                   <div className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200">
-                    <span className="text-xs font-bold text-accent-amber block mb-1 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-accent-amber mb-1 flex items-center gap-1.5">
                       <AlertTriangle className="w-3.5 h-3.5" /> Student Confusion Areas
                     </span>
                     <p className="text-xs text-amber-950 leading-relaxed">
@@ -619,7 +619,7 @@ export default function FacultyDashboardPage() {
                   </div>
 
                   <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200">
-                    <span className="text-xs font-bold text-accent-blue block mb-1 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-accent-blue mb-1 flex items-center gap-1.5">
                       <Lightbulb className="w-3.5 h-3.5" /> Recommended Improvements
                     </span>
                     <p className="text-xs text-blue-950 leading-relaxed">

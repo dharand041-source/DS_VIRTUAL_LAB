@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="grad-cap" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181B" />
+      <stop offset="100%" stop-color="#09090B" />
+    </linearGradient>
+    <linearGradient id="grad-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444" />
+      <stop offset="100%" stop-color="#DC2626" />
+    </linearGradient>
+    <linearGradient id="grad-book" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+    <linearGradient id="grad-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.12" />
+    </filter>
+  </defs>
+
+  <!-- Background Shield Badge -->
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="#FFFFFF" stroke="#E4E4E7" stroke-width="12" filter="url(#shadow)" />
+  <circle cx="256" cy="256" r="210" fill="#F8FAFC" opacity="0.6" />
+
+  <!-- Data Structure Connection Network Nodes (Subtle Tech Grid) -->
+  <g stroke="#CBD5E1" stroke-width="3" opacity="0.7">
+    <line x1="120" y1="180" x2="256" y2="110" stroke-dasharray="6,6" />
+    <line x1="392" y1="180" x2="256" y2="110" stroke-dasharray="6,6" />
+    <line x1="80" y1="260" x2="140" y2="340" />
+    <line x1="432" y1="260" x2="372" y2="340" />
+  </g>
+  <circle cx="120" cy="180" r="8" fill="#3B82F6" />
+  <circle cx="392" cy="180" r="8" fill="#EF4444" />
+  <circle cx="80" cy="260" r="7" fill="#10B981" />
+  <circle cx="432" cy="260" r="7" fill="#F59E0B" />
+
+  <!-- Educational Cap / Mortarboard -->
+  <g filter="url(#shadow)">
+    <!-- Skullcap Base -->
+    <path d="M152,210 L152,275 C152,320 360,320 360,275 L360,210 Z" fill="#09090B" />
+    <!-- Mortarboard Top -->
+    <polygon points="256,92 440,180 256,268 72,180" fill="url(#grad-cap)" stroke="#09090B" stroke-width="4" stroke-linejoin="round" />
+    <!-- Inner Accent Rim -->
+    <polygon points="256,104 424,180 256,256 88,180" fill="none" stroke="#27272A" stroke-width="3" />
+  </g>
+
+  <!-- Tassel with Golden Button & Ruby Ribbon -->
+  <circle cx="256" cy="180" r="14" fill="url(#grad-gold)" />
+  <path d="M256,180 Q370,195 388,250 L388,315" fill="none" stroke="url(#grad-accent)" stroke-width="12" stroke-linecap="round" />
+  <path d="M376,315 L400,315 L404,355 L372,355 Z" fill="url(#grad-accent)" />
+  <circle cx="388" cy="358" r="6" fill="url(#grad-gold)" />
+
+  <!-- Open Academic Education Book -->
+  <g filter="url(#shadow)">
+    <!-- Book Outer Cover -->
+    <path d="M116,335 Q186,310 256,330 Q326,310 396,335 L396,400 Q326,375 256,395 Q186,375 116,400 Z" fill="url(#grad-book)" />
+    <!-- Left Page -->
+    <path d="M126,345 Q186,325 250,342 L250,388 Q186,370 126,390 Z" fill="#FFFFFF" />
+    <!-- Right Page -->
+    <path d="M386,345 Q326,325 262,342 L262,388 Q326,370 386,390 Z" fill="#FFFFFF" />
+    <!-- Book Center Binding Line -->
+    <line x1="256" y1="330" x2="256" y2="398" stroke="#0F172A" stroke-width="5" stroke-linecap="round" />
+  </g>
+
+  <!-- Tech Code / Binary Marks on Pages -->
+  <line x1="145" y1="355" x2="230" y2="352" stroke="#94A3B8" stroke-width="4" stroke-linecap="round" />
+  <line x1="145" y1="367" x2="210" y2="364" stroke="#94A3B8" stroke-width="4" stroke-linecap="round" />
+  <line x1="145" y1="379" x2="225" y2="376" stroke="#94A3B8" stroke-width="4" stroke-linecap="round" />
+
+  <line x1="282" y1="352" x2="367" y2="355" stroke="#EF4444" stroke-width="4" stroke-linecap="round" />
+  <line x1="302" y1="364" x2="367" y2="367" stroke="#3B82F6" stroke-width="4" stroke-linecap="round" />
+  <line x1="287" y1="376" x2="367" y2="379" stroke="#10B981" stroke-width="4" stroke-linecap="round" />
+</svg>

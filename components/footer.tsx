@@ -43,9 +43,22 @@ export function Footer() {
           </Link>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-muted">
-          <ShieldCheck className="w-3.5 h-3.5 text-accent-emerald" />
-          <span>Sandboxed C Execution • Department of AI&DS</span>
+        <div className="flex flex-col md:flex-row items-center justify-between w-full pt-4 border-t border-border/50 text-[11px] text-muted gap-2">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-3.5 h-3.5 text-accent-emerald" />
+            <span>Sandboxed C Execution • Department of AI&DS</span>
+          </div>
+          <div>
+            <a 
+              href="https://www.flaticon.com/free-icons/education" 
+              title="education icons"
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:underline text-muted hover:text-secondary transition"
+            >
+              Education icons created by Magnific - Flaticon
+            </a>
+          </div>
         </div>
       </div>
     </footer>
